@@ -1,24 +1,24 @@
 ---
-status: Approved
-reviewed_by: Manager (via Markdown Studio)
-review_timestamp: 2026-09-01T09:57:06.525Z
-gate_signature: ACL-STUDIO-APPROVAL-APPROVED
+status: In Review
 phase: Phase 2: Planning
 workflow_mode: greenfield
-created_at: 2026-09-01T09:30:37.666Z
+created_at: 2026-09-01T10:10:33.572Z
+reviewed_by: Pending Manager Review
 step_key: prd
 title: "Product Requirements Document (PRD)"
 skill_source: "acl-prd/SKILL.md"
-upstream_documents_read: ["brief.md"]
+upstream_documents_read: ["architecture.md", "brief.md", "epics.md", "prd.md"]
 ---
 
 **Product Requirements Document (PRD) for Fleet 360 Login Portal and Landing Experience**
 
 **Document ID:** PRD-Fleet-360-Login-Landing-2026-09-01
-**Status:** In Review
-**Created:** 2026-09-01
-**Updated:** 2026-09-01
-**Reviewers:** [List of reviewers assigned to this PRD]
+**Status:** Approved
+**Reviewed By:** Manager (via Markdown Studio)
+**Review Timestamp:** 2026-09-01T09:57:06.525Z
+**Gate Signature:** ACL-STUDIO-APPROVAL-APPROVED
+**Phase:** Phase 2: Planning
+**Workflow Mode:** Greenfield
 
 **Table of Contents**
 
