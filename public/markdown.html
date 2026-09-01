@@ -1117,7 +1117,6 @@
 
 
   </style>
-  <script>window.__ACL_EMBEDDED_FILES__ = [{"id":"_acl-output_planning-artifacts_briefs_brief-Fleet-360-2026-08-26_brief_md","folderPath":"_acl-output/planning-artifacts/briefs/brief-Fleet-360-2026-08-26","filename":"brief.md","status":"Approved","updatedAt":"2026-08-31T05:09:15.355Z","content":"---\nstatus: Approved\nreviewed_by: Manager (via Markdown Studio)\nreview_timestamp: 2026-08-31T05:09:15.343Z\ngate_signature: ACL-STUDIO-APPROVAL-APPROVED\ntitle: \"Product Brief - Fleet 360: Login Portal and Landing Experience\"\ncreated: \"2026-08-26\"\nupdated: \"2026-08-26\"\n---\n\n# Product Brief: Fleet 360 — Login & Landing Experience\n\n## Executive Summary\n\n**Fleet 360** is an enterprise-grade IoT fleet and intelligent facility management platform powered by ACE Digital, designed to give building operators, facility managers, and enterprise administrators complete visibility and granular control over commercial HVAC, refrigeration, and energy assets.\n\nThe **Login and Landing Experience** serves as the initial mission-critical gateway and triage terminal for Fleet 360. It delivers a secure, branded authentication entry point paired with an intuitive post-login launchpad. Rather than overwhelming users with raw telemetric noise immediately upon sign-in, the Landing Experience provides frictionless routing into the three foundational operational pillars: **Devices** (hardware status, telemetries, and setpoint controls), **Sites** (multi-location facility mapping and 3D architectural floor plans), and **Users** (enterprise team access control and RBAC administration).\n\n---\n\n## The Problem & Business Context\n\nEnterprise fleet, facility, and HVAC operations are traditionally plagued by fragmented interfaces, high cognitive load, and cumbersome authentication workflows:\n1. **Disjointed Access & High Cognitive Friction:** Operations personnel, field technicians, and facility directors often manage dozens of heterogeneous systems. A complex or generic onboarding/login surface slows daily response times during critical hardware fault events.\n2. **Context Switching & \"Where Do I Go?\" Paralysis:** Directing every user to a monolithic, noisy dashboard upon login creates disorientation. Facility managers need immediate access to site floor plans, field service technicians need quick access to specific RTU/device units, and IT administrators need immediate user management tools.\n3. **Enterprise Security & Compliance Obligations:** Commercial facilities require secure, authenticated entry compliant with organizational policies, explicit terms of service acceptance, and robust password recovery mechanisms.\n\n---\n\n## The Solution: Seamless Gateway & Triage\n\nFleet 360 resolves these friction points through a streamlined, two-tier entry architecture:\n\n```mermaid\ngraph TD\n    A[Unauthenticated User] --> B[Fleet 360 Login Portal]\n    B -->|Email / Password Auth & SSO| C{Authentication Success}\n    C -->|New Session / Triage| D[Fleet 360 Landing Hub]\n    D -->|Card 1: Manage Devices| E[Devices Module: RTU/HVAC Telemetry & Controls]\n    D -->|Card 2: Manage Sites| F[Sites Module: 3D Multi-Floor & Facility Layouts]\n    D -->|Card 3: Manage Users| G[User Management: RBAC & Team Provisioning]\n    B -->|Forgot Password| H[Self-Service Credential Reset Flow]\n```\n\n### Key Experience Elements:\n1. **Branded, High-Trust Authentication Portal (`/login`):**\n   - Clean split-screen visual presentation combining commercial HVAC/industrial equipment imagery with a focused login interface.\n   - Enterprise single-sign-on (SSO) and email/password authentication.\n   - Inline self-service credential recovery (\"Forgot Password?\").\n   - Explicit compliance notice linking to corporate Terms & Conditions and Privacy Policies.\n   - Prominent brand attribution (*\"Powered by ACE Digital\"*).\n\n2. **Focused Action-Oriented Landing Hub (`/landing`):**\n   - Clean welcome typography: *\"Welcome to Fleet 360 — Complete visibility into your data, take control with real insights.\"*\n   - Three high-contrast navigation cards facilitating 1-click domain navigation:\n     - **Devices Card:** *\"Manage devices efficiently and safely with real-time actionable insights\"* -> CTA: `Manage Devices`.\n     - **Sites Card:** *\"Status of multi-location assets and footprint view with max reliability\"* -> CTA: `Manage Sites`.\n     - **Users Card:** *\"Comprehensive view of your team and operators to stay on schedule\"* -> CTA: `Manage Users`.\n\n---\n\n## What Makes This Different\n\n- **Role-Optimized Entry, Zero Clutter:** Instead of dumping all users into a dense data table or heavy analytics dashboard by default, the landing hub acts as a clean navigational switchboard that respects the user's immediate intent.\n- **Visual Clarity & Industrial Elegance:** Professional, high-contrast dark slate card deck with active red CTA buttons aligned with the Rheem/ACE Digital brand system.\n- **Enterprise-Ready Extensibility:** Designed to integrate seamlessly with multi-tenant organization switchers (e.g., TotalView organization selector) and federated enterprise identity providers.\n\n---\n\n## Who This Serves\n\n| Persona | Primary Goal at Entry | Target Landing Destination |\n| :--- | :--- | :--- |\n| **Facility Operations Manager** | Check overall campus health, floor-by-floor HVAC status, and multi-site footprints. | **Sites Module** (`/sites`) |\n| **Field Technician / HVAC Specialist** | Inspect specific RTUs, adjust temperature setpoints, and diagnose alarm codes. | **Devices Module** (`/devices`) |\n| **Enterprise IT / Security Admin** | Invite new site managers, configure roles, and audit permissions. | **Users Module** (`/users`) |\n| **Executive / Regional Director** | High-level fleet status and power consumption trends. | **TotalView Dashboard** (`/dashboard`) |\n\n---\n\n## Success Criteria & Metrics\n\n1. **Authentication Velocity & Friction Reduction:**\n   - Average time-to-login under 4 seconds for returning users.\n   - Self-service password reset success rate > 92%.\n2. **Navigation Efficiency:**\n   - > 85% of users reach their target operational task (Device, Site, or User Management) within 1 click from the landing page.\n   - Reduction in session bounce rate on initial login.\n3. **Security & Session Health:**\n   - 100% adherence to enterprise session token expiry and secure cookie standards.\n   - Zero unauthenticated leaks to protected application routes.\n\n---\n\n## Scope\n\n### In-Scope (Phase 1):\n- Dedicated responsive Login page with email/password authentication, validation states, and error handling.\n- Forgot Password request and reset trigger mechanism.\n- Legal consent and compliance links (Terms of Service, Privacy Policy).\n- Post-login Landing Page / Launchpad with three primary domain routing cards (`Devices`, `Sites`, `Users`).\n- Client-side route protection and token-based session persistence.\n\n### Explicitly Out-of-Scope (Deferred to Downstream Module PRDs):\n- Detailed inner screens for Devices telemetry, RTU setpoints, and schedule configurations (covered under *Devices PRD*).\n- 3D Floor visualizer, 2D floorplan CAD uploads, and site analytics (covered under *Sites PRD*).\n- Fine-grained RBAC permission matrix editor and LDAP directory sync (covered under *User Management PRD*).\n- Real-time alarm notification engine and dispatch webhooks (covered under *Alarms PRD*).\n\n---\n\n## Vision\n\nAs Fleet 360 scales across global facilities, the Login and Landing experience will evolve into an **Intelligent Contextual Launchpad**:\n- **Adaptive Landing:** Machine-learning-driven landing states that dynamically highlight urgent facility alarms or suggest the most relevant site based on the operator's shift, location, and role.\n- **Biometric & Passwordless Auth:** Fast, seamless WebAuthn / Passkey support for mobile field tablets.\n- **Unified Fleet Hub:** Single sign-on federation across the broader ACE Digital and Rheem commercial IoT ecosystem.\n"}];</script>
 </head>
 <body>
 
@@ -1264,7 +1263,6 @@
   </div>
 
   <script>
-    const SERVER_API_HOST = typeof window !== 'undefined' && window.SERVER_API_HOST ? window.SERVER_API_HOST : '';
     let files = [];
     let activeFileId = null;
     let isDirty = false;
@@ -1285,47 +1283,85 @@
       });
     }
 
+    function isDeliverableFile(f) {
+      if (!f || !f.filename) return false;
+      const name = (f.filename || '').toLowerCase();
+      const folder = (f.folderPath || '').toLowerCase();
+      const id = (f.id || '').toLowerCase();
+
+      if (name === 'skill.md' || name === 'agents.md' || name === 'readme.md' || name.endsWith('.agent.md') || name.startsWith('.')) return false;
+      if (folder.includes('.agents') || folder.includes('.claude') || folder.includes('_acl/') || folder.includes('.github') || folder.includes('node_modules')) return false;
+      if (id.includes('_agents_') || id.includes('_claude_') || id.includes('_github_')) return false;
+
+      const isAclOutput = folder.includes('_acl-output') || folder.includes('_acl_output') || folder.includes('acl-output') || folder.includes('planning-artifacts') || folder.startsWith('0-') || folder.startsWith('1-') || folder.startsWith('2-') || folder.startsWith('3-') || folder.startsWith('4-');
+      return isAclOutput;
+    }
+
 async function syncFromLiveDisk(quiet = false) {
       try {
         const res = await fetch("/api/list-markdown-files");
         if (res.ok) {
           const data = await res.json();
           if (data && Array.isArray(data.files)) {
-            if (data.files.length === 0) {
+            const filteredFiles = data.files.filter(isDeliverableFile);
+
+            if (filteredFiles.length === 0) {
               files = [];
-              try { localStorage.setItem("acl_adlc_project_markdown_files", JSON.stringify([])); } catch(e){}
+              try {
+                localStorage.setItem('acl_adlc_project_markdown_files', JSON.stringify([]));
+              } catch (e) {}
               renderFileTree();
               loadEmptyState();
-              setSyncStatus("Synced with VS Code (0 files in _acl-output)", "green");
+              setSyncStatus('Synced with VS Code (0 files in _acl-output)', 'green');
               return true;
             }
-            const hasChanged = JSON.stringify(data.files.map(f => ({ id: f.id, content: f.content, status: f.status, updatedAt: f.updatedAt }))) !==
-                               JSON.stringify(files.map(f => ({ id: f.id, content: f.content, status: f.status, updatedAt: f.updatedAt })));
-            
+            const hasChanged =
+              JSON.stringify(
+                filteredFiles.map((f) => ({
+                  id: f.id,
+                  content: f.content,
+                  status: f.status,
+                  updatedAt: f.updatedAt,
+                })),
+              ) !==
+              JSON.stringify(
+                files.map((f) => ({
+                  id: f.id,
+                  content: f.content,
+                  status: f.status,
+                  updatedAt: f.updatedAt,
+                })),
+              );
+
             if (hasChanged || files.length === 0) {
-              files = data.files.map(f => ({
+              files = filteredFiles.map((f) => ({
                 ...f,
-                status: (f.status === 'Accepted' || f.status === 'approved') ? 'Approved' : (f.status || 'In Review')
+                status:
+                  f.status === 'Accepted' || f.status === 'approved'
+                    ? 'Approved'
+                    : f.status || 'In Review',
               }));
-              try { localStorage.setItem("acl_adlc_project_markdown_files", JSON.stringify(files)); } catch(e){}
+              try {
+                localStorage.setItem('acl_adlc_project_markdown_files', JSON.stringify(files));
+              } catch (e) {}
               renderFileTree();
-              if (activeFileId && files.some(f => f.id === activeFileId)) {
+              if (activeFileId && files.some((f) => f.id === activeFileId)) {
                 const active = getActiveFile();
                 if (active) {
-                  document.getElementById("markdownTextarea").value = active.content;
-                  document.getElementById("statusSelect").value = active.status;
+                  document.getElementById('markdownTextarea').value = active.content;
+                  document.getElementById('statusSelect').value = active.status;
                   renderPreview();
                 }
               } else if (files.length > 0) {
                 loadFile(files[0].id);
               }
             }
-            setSyncStatus("Synced with VS Code (Local Test Mode)", "green");
+            setSyncStatus('Synced with VS Code (Local Test Mode)', 'green');
             evaluateProceedButton();
             return true;
           }
         }
-      } catch(e) {}
+      } catch (e) {}
       evaluateProceedButton();
       return false;
     }
@@ -1361,29 +1397,23 @@ async function syncFromLiveDisk(quiet = false) {
       const synced = await syncFromLiveDisk(true);
 
       if (!synced && files.length === 0) {
-        if (
-          window.__ACL_EMBEDDED_FILES__ &&
-          Array.isArray(window.__ACL_EMBEDDED_FILES__) &&
-          window.__ACL_EMBEDDED_FILES__.length > 0
-        ) {
-          files = window.__ACL_EMBEDDED_FILES__;
-        } else {
-          try {
-            const cached = localStorage.getItem('acl_adlc_project_markdown_files');
-            if (cached) {
-              const parsed = JSON.parse(cached);
-              if (Array.isArray(parsed) && parsed.length > 0) {
-                files = parsed.map((f) => ({
+        try {
+          const cached = localStorage.getItem('acl_adlc_project_markdown_files');
+          if (cached) {
+            const parsed = JSON.parse(cached);
+            if (Array.isArray(parsed) && parsed.length > 0) {
+              files = parsed
+                .filter(isDeliverableFile)
+                .map((f) => ({
                   ...f,
                   status:
                     f.status === 'Accepted' || f.status === 'approved'
                       ? 'Approved'
                       : f.status || 'In Review',
                 }));
-              }
             }
-          } catch (e) {}
-        }
+          }
+        } catch (e) {}
 
         if (files.length > 0) {
           activeFileId = files[0].id;

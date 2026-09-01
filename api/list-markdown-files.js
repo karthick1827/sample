@@ -1,6 +1,51 @@
 import fs from 'node:fs';
 import path from 'node:path';
 
+const IGNORED_FILENAMES = new Set([
+  'skill.md',
+  'agents.md',
+  'readme.md',
+  'changelog.md',
+  'claude.md',
+  'security.md',
+  'contributing.md',
+  'addendum.md',
+  'sources.md',
+  'review-triage.md',
+  'patch-plan.md',
+  'research.md',
+  '.memlog.md'
+]);
+
+function isAllowedMarkdownFile(relPath, filename) {
+  const normRel = relPath.replace(/\\/g, '/').toLowerCase();
+  const lowerName = filename.toLowerCase();
+
+  if (IGNORED_FILENAMES.has(lowerName)) return false;
+  if (lowerName.startsWith('.')) return false;
+
+  // Must strictly be inside _acl-output / _acl_output / acl-output
+  const isAclOutput =
+    normRel.startsWith('_acl-output/') ||
+    normRel.startsWith('_acl_output/') ||
+    normRel.startsWith('acl-output/');
+
+  if (!isAclOutput) return false;
+
+  // Reject anything from internal framework / skill configs
+  if (
+    normRel.includes('.agents/') ||
+    normRel.includes('.claude/') ||
+    normRel.includes('_acl/') ||
+    normRel.includes('.github/') ||
+    normRel.includes('node_modules/')
+  ) {
+    return false;
+  }
+
+  return true;
+}
+
 function parseStatus(content) {
   if (!content) return 'In Review';
   const match = content.match(/status:\s*([^\n\r]+)/i);
@@ -24,9 +69,20 @@ function collectLocalMarkdown(currentDir, relPrefix, mdFiles) {
     for (const entry of entries) {
       const full = path.join(currentDir, entry.name);
       const rel = relPrefix ? `${relPrefix}/${entry.name}` : entry.name;
-      if (entry.isDirectory() && entry.name !== 'node_modules' && entry.name !== '.git' && entry.name !== '.vscode') {
-        collectLocalMarkdown(full, rel, mdFiles);
+      if (entry.isDirectory()) {
+        if (
+          entry.name !== 'node_modules' &&
+          entry.name !== '.git' &&
+          entry.name !== '.vscode' &&
+          entry.name !== '.agents' &&
+          entry.name !== '.claude' &&
+          entry.name !== '_acl'
+        ) {
+          collectLocalMarkdown(full, rel, mdFiles);
+        }
       } else if (entry.isFile() && entry.name.endsWith('.md')) {
+        if (!isAllowedMarkdownFile(rel, entry.name)) continue;
+
         try {
           const content = fs.readFileSync(full, 'utf8');
           const stat = fs.statSync(full);
@@ -68,11 +124,11 @@ async function fetchGitHubMarkdown(owner, repo, token) {
     const treeData = await treeRes.json();
     if (!treeData.tree || !Array.isArray(treeData.tree)) return mdFiles;
 
+    // Strictly filter to ONLY _acl-output deliverables
     const mdItems = treeData.tree.filter(item =>
       item.type === 'blob' &&
       item.path.endsWith('.md') &&
-      !item.path.startsWith('.github/') &&
-      !item.path.startsWith('node_modules/')
+      isAllowedMarkdownFile(item.path, path.basename(item.path))
     );
 
     for (const item of mdItems) {
@@ -118,7 +174,7 @@ export default async function handler(req, res) {
 
   try {
     const mdFiles = [];
-    const scanCandidates = ['_acl-output', '_acl_output', 'acl-output', 'docs'];
+    const scanCandidates = ['_acl-output', '_acl_output', 'acl-output'];
     const projectRoot = process.cwd();
 
     for (const folder of scanCandidates) {
