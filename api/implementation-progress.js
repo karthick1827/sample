@@ -10,6 +10,26 @@ const DEFAULT_PHASE4_STORIES = [
   { id: '3.2', epicId: 'Epic-3', title: 'AI Step Generator & Micro-Gate Validation', folder: '4-implementation/acl-quick-dev', filename: 'story-3.2.md' }
 ];
 
+function getEnv(key, fallback = '') {
+  if (process.env[key]) return process.env[key];
+  try {
+    const envPath = path.resolve(process.cwd(), '.env');
+    if (fs.existsSync(envPath)) {
+      const lines = fs.readFileSync(envPath, 'utf8').split('\n');
+      for (const line of lines) {
+        const trimmed = line.trim();
+        if (trimmed && !trimmed.startsWith('#') && trimmed.includes('=')) {
+          const [k, ...v] = trimmed.split('=');
+          if (k.trim() === key) {
+            return v.join('=').trim().replace(/^["']|["']$/g, '');
+          }
+        }
+      }
+    }
+  } catch (e) {}
+  return fallback;
+}
+
 function parseStatus(content) {
   if (!content) return 'Pending';
   const match = content.match(/status:\s*([^\n\r]+)/i);
@@ -54,6 +74,41 @@ function findFileContentLocally(filename) {
   return null;
 }
 
+async function findFileContentFromGitHub(filename, owner, repo, token) {
+  try {
+    const treeRes = await fetch(`https://api.github.com/repos/${owner}/${repo}/git/trees/main?recursive=1&t=${Date.now()}`, {
+      headers: {
+        'Accept': 'application/vnd.github.v3+json',
+        'User-Agent': 'ACL-Markdown-Studio',
+        ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+      }
+    });
+
+    if (!treeRes.ok) return null;
+    const data = await treeRes.json();
+    const match = (data.tree || []).find(item =>
+      item.type === 'blob' &&
+      path.basename(item.path).toLowerCase() === filename.toLowerCase() &&
+      (item.path.startsWith('_acl-output/') || item.path.startsWith('_acl_output/') || item.path.startsWith('acl-output/'))
+    );
+
+    if (match) {
+      const fileRes = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${match.path}?ref=main&t=${Date.now()}`, {
+        headers: {
+          'Accept': 'application/vnd.github.v3+json',
+          'User-Agent': 'ACL-Markdown-Studio',
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+        }
+      });
+      if (fileRes.ok) {
+        const fileData = await fileRes.json();
+        return Buffer.from(fileData.content, 'base64').toString('utf8');
+      }
+    }
+  } catch (e) {}
+  return null;
+}
+
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
@@ -68,32 +123,52 @@ export default async function handler(req, res) {
   }
 
   try {
+    const token = getEnv('GITHUB_TOKEN');
+    const owner = getEnv('GITHUB_OWNER', 'karthick1827');
+    const repo = getEnv('GITHUB_REPO', 'sample');
+
     const storiesStatus = [];
     let previousStoryApproved = true; // Upstream gates unlocked for first story
     let nextStoryToGenerate = null;
 
     // Check upstream phase deliverables
-    const phases = [
+    const phasesDefs = [
       { name: 'Phase 0: Context', filename: 'project-context.md' },
       { name: 'Phase 1: Analysis (Brief)', filename: 'brief.md' },
       { name: 'Phase 2: Planning (PRD)', filename: 'prd.md' },
       { name: 'Phase 3A: Architecture', filename: 'architecture.md' },
       { name: 'Phase 3B: UX Design', filename: 'ux.md' },
       { name: 'Phase 3C: Epics & Stories', filename: 'epics.md' }
-    ].map(p => {
-      const content = findFileContentLocally(p.filename);
+    ];
+
+    const phases = [];
+    for (const p of phasesDefs) {
+      let content = null;
+      if (token) {
+        content = await findFileContentFromGitHub(p.filename, owner, repo, token);
+      }
+      if (!content) {
+        content = findFileContentLocally(p.filename);
+      }
+
       const status = content ? parseStatus(content) : 'Pending';
-      return {
+      phases.push({
         name: p.name,
         filename: p.filename,
         exists: Boolean(content),
         status
-      };
-    });
+      });
+    }
 
     for (let i = 0; i < DEFAULT_PHASE4_STORIES.length; i++) {
       const def = DEFAULT_PHASE4_STORIES[i];
-      const content = findFileContentLocally(def.filename);
+      let content = null;
+      if (token) {
+        content = await findFileContentFromGitHub(def.filename, owner, repo, token);
+      }
+      if (!content) {
+        content = findFileContentLocally(def.filename);
+      }
 
       let status = 'Pending';
       let fileExists = false;

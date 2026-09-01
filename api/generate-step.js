@@ -174,11 +174,16 @@ async function loadUpstreamDeliverables(owner, repo, token) {
 
         for (const blob of aclBlobs) {
           try {
-            const rawRes = await fetch(`https://raw.githubusercontent.com/${owner}/${repo}/main/${blob.path}`, {
-              headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+            const fileRes = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${blob.path}?ref=main&t=${Date.now()}`, {
+              headers: {
+                'Accept': 'application/vnd.github.v3+json',
+                'User-Agent': 'ACL-Markdown-Studio',
+                ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+              }
             });
-            if (rawRes.ok) {
-              const content = await rawRes.text();
+            if (fileRes.ok) {
+              const fileData = await fileRes.json();
+              const content = Buffer.from(fileData.content, 'base64').toString('utf8');
               deliverables.push({
                 path: blob.path,
                 filename: path.basename(blob.path),

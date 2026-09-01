@@ -17,6 +17,26 @@ const IGNORED_FILENAMES = new Set([
   '.memlog.md'
 ]);
 
+function getEnv(key, fallback = '') {
+  if (process.env[key]) return process.env[key];
+  try {
+    const envPath = path.resolve(process.cwd(), '.env');
+    if (fs.existsSync(envPath)) {
+      const lines = fs.readFileSync(envPath, 'utf8').split('\n');
+      for (const line of lines) {
+        const trimmed = line.trim();
+        if (trimmed && !trimmed.startsWith('#') && trimmed.includes('=')) {
+          const [k, ...v] = trimmed.split('=');
+          if (k.trim() === key) {
+            return v.join('=').trim().replace(/^["']|["']$/g, '');
+          }
+        }
+      }
+    }
+  } catch (e) {}
+  return fallback;
+}
+
 function isAllowedMarkdownFile(relPath, filename) {
   const normRel = relPath.replace(/\\/g, '/').toLowerCase();
   const lowerName = filename.toLowerCase();
@@ -108,7 +128,8 @@ function collectLocalMarkdown(currentDir, relPrefix, mdFiles) {
 async function fetchGitHubMarkdown(owner, repo, token) {
   const mdFiles = [];
   try {
-    const treeRes = await fetch(`https://api.github.com/repos/${owner}/${repo}/git/trees/main?recursive=1`, {
+    // 1. Fetch current tree with cache-buster
+    const treeRes = await fetch(`https://api.github.com/repos/${owner}/${repo}/git/trees/main?recursive=1&t=${Date.now()}`, {
       headers: {
         'Accept': 'application/vnd.github.v3+json',
         'User-Agent': 'ACL-Markdown-Studio',
@@ -131,15 +152,23 @@ async function fetchGitHubMarkdown(owner, repo, token) {
       isAllowedMarkdownFile(item.path, path.basename(item.path))
     );
 
+    // 2. Fetch live uncached content from GitHub REST API (no raw.githubusercontent.com CDN caching)
     for (const item of mdItems) {
       try {
-        const rawRes = await fetch(`https://raw.githubusercontent.com/${owner}/${repo}/main/${item.path}`, {
-          headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+        const fileRes = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${item.path}?ref=main&t=${Date.now()}`, {
+          headers: {
+            'Accept': 'application/vnd.github.v3+json',
+            'User-Agent': 'ACL-Markdown-Studio',
+            ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+          }
         });
-        if (rawRes.ok) {
-          const content = await rawRes.text();
+
+        if (fileRes.ok) {
+          const fileData = await fileRes.json();
+          const content = Buffer.from(fileData.content, 'base64').toString('utf8');
           const folderPath = path.dirname(item.path).replace(/\\/g, '/');
           const filename = path.basename(item.path);
+
           mdFiles.push({
             id: item.path.replace(/[^a-zA-Z0-9_-]/g, '_'),
             folderPath: folderPath === '.' ? '' : folderPath,
@@ -173,6 +202,19 @@ export default async function handler(req, res) {
   }
 
   try {
+    const token = getEnv('GITHUB_TOKEN');
+    const owner = getEnv('GITHUB_OWNER', 'karthick1827');
+    const repo = getEnv('GITHUB_REPO', 'sample');
+
+    // 1. If GitHub token is present (cloud / live mode), fetch uncached live data from GitHub first
+    if (token) {
+      const remoteFiles = await fetchGitHubMarkdown(owner, repo, token);
+      if (remoteFiles && remoteFiles.length > 0) {
+        return res.status(200).json({ files: remoteFiles, source: 'github_live' });
+      }
+    }
+
+    // 2. Fallback to local filesystem scan (offline local development)
     const mdFiles = [];
     const scanCandidates = ['_acl-output', '_acl_output', 'acl-output'];
     const projectRoot = process.cwd();
@@ -182,41 +224,7 @@ export default async function handler(req, res) {
       collectLocalMarkdown(fullPath, folder, mdFiles);
     }
 
-function getEnv(key, fallback = '') {
-  if (process.env[key]) return process.env[key];
-  try {
-    const envPath = path.resolve(process.cwd(), '.env');
-    if (fs.existsSync(envPath)) {
-      const lines = fs.readFileSync(envPath, 'utf8').split('\n');
-      for (const line of lines) {
-        const trimmed = line.trim();
-        if (trimmed && !trimmed.startsWith('#') && trimmed.includes('=')) {
-          const [k, ...v] = trimmed.split('=');
-          if (k.trim() === key) {
-            return v.join('=').trim().replace(/^["']|["']$/g, '');
-          }
-        }
-      }
-    }
-  } catch (e) {}
-  return fallback;
-}
-
-    const token = getEnv('GITHUB_TOKEN');
-    const owner = getEnv('GITHUB_OWNER', 'karthick1827');
-    const repo = getEnv('GITHUB_REPO', 'sample');
-
-    // If local files are empty or GitHub token is provided, sync with GitHub repo
-    if (mdFiles.length === 0 && (token || owner)) {
-      const remoteFiles = await fetchGitHubMarkdown(owner, repo, token);
-      for (const rf of remoteFiles) {
-        if (!mdFiles.some(f => f.id === rf.id)) {
-          mdFiles.push(rf);
-        }
-      }
-    }
-
-    return res.status(200).json({ files: mdFiles });
+    return res.status(200).json({ files: mdFiles, source: 'local_disk' });
   } catch (err) {
     console.error('[list-markdown-files] Error:', err);
     return res.status(500).json({ files: [], error: err.message });
