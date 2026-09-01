@@ -1,0 +1,268 @@
+/* Fleet 360 Landing Hub Styles - 100% Figma Node #227:3884 Precision */
+
+.fleet-landing-wrapper {
+  min-height: 100vh;
+  width: 100vw;
+  display: flex;
+  flex-direction: column;
+  background-color: #FFFFFF;
+  font-family: 'Roboto', sans-serif;
+  box-sizing: border-box;
+  overflow-x: hidden;
+}
+
+/* Optional Top Admin Bar for App Navigation & Sign Out */
+.fleet-landing-topbar {
+  height: 56px;
+  background-color: #FFFFFF;
+  border-bottom: 1px solid #E5E7EB;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 40px;
+  box-sizing: border-box;
+}
+
+.fleet-topbar-user {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.fleet-topbar-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #264072;
+  color: #FFFFFF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.fleet-topbar-logout {
+  background: transparent;
+  border: 1px solid #D1D5DB;
+  border-radius: 6px;
+  padding: 6px 12px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #515D6D;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+}
+
+.fleet-topbar-logout:hover {
+  background: #F3F4F6;
+  color: #1E2A2C;
+}
+
+/* Landing Main 1366x768 Container */
+.fleet-landing-canvas {
+  width: 100%;
+  max-width: 1366px;
+  min-height: 712px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  flex: 1;
+  box-sizing: border-box;
+}
+
+/* Top Section (Height: 496px matching Figma frame #227:3885) */
+.fleet-landing-top-section {
+  min-height: 440px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 60px;
+  box-sizing: border-box;
+}
+
+.fleet-landing-hero-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 140px;
+  width: 100%;
+  max-width: 1100px;
+}
+
+/* Left Logo Area matching Figma node #4003:14139 */
+.fleet-landing-logo-box {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+/* Right Typography Area matching Figma node #227:3923 */
+.fleet-landing-welcome-box {
+  max-width: 440px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.fleet-landing-welcome-pre {
+  font-family: 'Inter', sans-serif;
+  font-size: 24px;
+  font-weight: 400;
+  line-height: 24px;
+  letter-spacing: 0.0015em;
+  color: #264072;
+  margin: 0;
+}
+
+.fleet-landing-welcome-title {
+  font-family: 'Roboto', sans-serif;
+  font-size: 32px;
+  font-weight: 400;
+  line-height: 28px;
+  letter-spacing: 0.0015em;
+  color: #264072;
+  margin: 0;
+}
+
+.fleet-landing-welcome-title strong {
+  font-weight: 700;
+  color: #264072;
+}
+
+.fleet-landing-welcome-desc {
+  font-family: 'Roboto', sans-serif;
+  font-size: 19px;
+  font-weight: 400;
+  line-height: 28px;
+  color: #1E2A2C;
+  margin: 6px 0 0 0;
+}
+
+/* Bottom Triage Banner matching Figma frame #227:3928 */
+.fleet-landing-bottom-banner {
+  min-height: 272px;
+  width: 100%;
+  background: linear-gradient(90deg, #264072 0%, #3B5A8A 50%, #264072 100%), #264072;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 40px 100px;
+  box-sizing: border-box;
+  gap: 40px;
+}
+
+/* 3 Cards matching #227:3929, #227:3943, #227:3959 */
+.fleet-triage-column {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  color: #FFFFFF;
+  cursor: pointer;
+  padding: 16px;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.fleet-triage-column:hover {
+  background: rgba(255, 255, 255, 0.08);
+  transform: translateY(-4px);
+}
+
+.fleet-triage-icon-row {
+  display: flex;
+  align-items: center;
+}
+
+.fleet-triage-icon-circle {
+  width: 48px;
+  height: 48px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.12);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s ease;
+}
+
+.fleet-triage-column:hover .fleet-triage-icon-circle {
+  background: #0A93D3;
+}
+
+.fleet-triage-content {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.fleet-triage-title {
+  font-family: 'Roboto', sans-serif;
+  font-size: 20px;
+  font-weight: 600;
+  line-height: 28px;
+  color: #FFFFFF;
+  margin: 0;
+}
+
+.fleet-triage-body {
+  font-family: 'Roboto', sans-serif;
+  font-size: 15px;
+  font-weight: 400;
+  line-height: 22px;
+  color: rgba(255, 255, 255, 0.85);
+  margin: 0;
+  min-height: 44px;
+}
+
+.fleet-triage-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: 'Roboto', sans-serif;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 24px;
+  color: #FFFFFF;
+  margin-top: 4px;
+  transition: gap 0.2s ease;
+}
+
+.fleet-triage-column:hover .fleet-triage-action {
+  color: #0A93D3;
+  gap: 12px;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 1024px) {
+  .fleet-landing-hero-row {
+    flex-direction: column;
+    gap: 32px;
+    text-align: center;
+  }
+
+  .fleet-landing-welcome-box {
+    max-width: 100%;
+    align-items: center;
+  }
+
+  .fleet-landing-bottom-banner {
+    flex-direction: column;
+    padding: 32px 24px;
+    min-height: auto;
+  }
+
+  .fleet-triage-column {
+    width: 100%;
+    align-items: center;
+    text-align: center;
+  }
+
+  .fleet-triage-body {
+    min-height: auto;
+  }
+}
