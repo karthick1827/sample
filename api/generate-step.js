@@ -4,248 +4,197 @@ import path from 'node:path';
 const STEP_DEFINITIONS = {
   project_context: {
     agentName: 'Mary Analyst & System Architect',
+    skillName: 'acl-generate-project-context',
     phase: 'Phase 0: Baseline & Context',
     folderPath: '_acl-output/planning-artifacts/context',
     filename: 'project-context.md',
-    title: 'Project Context & Codebase Conventions',
-    systemPrompt: 'You are Mary Analyst, an expert technical business analyst and systems architect producing a project context and codebase conventions deliverable.',
-    defaultTemplate: (title, mode) => `# Project Context & Codebase Conventions: ${title}
-
-## Executive Summary
-This document establishes the architecture baseline, technology stack, design system tokens, and development conventions for ${title}.
-
-## Technology Stack
-- **Frontend Framework:** React 19 + Vite 8
-- **Language / Runtime:** JavaScript ES Modules (ESM)
-- **Styling Architecture:** Modern CSS Design Tokens with CSS Variables
-- **Component Architecture:** Atomic modular components with strict separation of concerns
-- **State Management:** React Context + Hooks
-- **Build / Tooling:** Rolldown Babel Compiler, Oxlint
-
-## Codebase Structure
-\`\`\`
-src/
-  ├── components/       # Reusable UI & Common layout components
-  ├── features/         # Domain-specific feature modules (auth, landing)
-  ├── context/          # Global application state contexts
-  ├── pages/            # Top-level route pages (LoginPage, LandingPage, DomainPage)
-  └── styles/           # CSS design tokens, auth, and landing stylesheets
-\`\`\`
-
-## Architecture & Code Conventions
-1. **Separation of Concerns:** Business logic in contexts/hooks, pure presentation in components.
-2. **Design Tokens:** Strict adherence to color palette, typography hierarchy, and spacing tokens.
-3. **Micro-Gate Governance:** All deliverables require formal review and approval before downstream phase execution.
-`
+    title: 'Project Context & Codebase Conventions'
   },
   brief: {
     agentName: 'Mary Analyst',
+    skillName: 'acl-product-brief',
     phase: 'Phase 1: Analysis',
     folderPath: '_acl-output/planning-artifacts/briefs',
     filename: 'brief.md',
-    title: 'Product Brief',
-    systemPrompt: 'You are Mary Analyst, an expert product strategist generating a comprehensive Product Brief.',
-    defaultTemplate: (title, mode) => `# Product Brief: ${title}
-
-## 1. Executive Summary
-${title} is an enterprise-grade IoT fleet and intelligent facility management platform engineered to deliver end-to-end visibility and real-time operational control.
-
-## 2. Problem Statement & Business Opportunity
-- **Operational Friction:** Commercial facility operations are fragmented across multiple point solutions.
-- **Triage Delay:** Operators lack a unified dashboard to rapidly triage hardware alerts and dispatch field technicians.
-- **Enterprise Governance:** Organizations require fine-grained access control (RBAC) and audited sign-off gates.
-
-## 3. Target Audience & Personas
-- **Facility Managers:** Monitor multi-site asset footprints and optimize HVAC energy consumption.
-- **Field Engineers:** Rapidly diagnose equipment fault codes, view telemetry streams, and update setpoints.
-- **Enterprise Administrators:** Manage user permissions, SSO integrations, and compliance policies.
-
-## 4. Key Value Pillars
-- **Devices:** Real-time RTU/HVAC telemetries, operational setpoints, and diagnostic health scores.
-- **Sites:** Multi-location geographical mapping and 3D architectural floor plans.
-- **Users:** Enterprise RBAC, security auditing, and team provisioning.
-
-## 5. Success Metrics (KPIs)
-- Reduce average fault triage time by 45%.
-- Achieve 99.9% uptime for telemetry ingestion.
-- Zero-friction authentication with SSO compliance.
-`
+    title: 'Product Brief'
   },
   prd: {
     agentName: 'John PM',
+    skillName: 'acl-prd',
     phase: 'Phase 2: Planning',
     folderPath: '_acl-output/planning-artifacts/prd',
     filename: 'prd.md',
-    title: 'Product Requirements Document (PRD)',
-    systemPrompt: 'You are John PM, a principal Product Manager authoring a detailed PRD with requirements, user stories, and acceptance criteria.',
-    defaultTemplate: (title, mode) => `# Product Requirements Document: ${title}
-
-## 1. Product Overview & Goals
-Deliver a modern, highly reliable portal for ${title} comprising secure authentication and intuitive domain triage launchpads.
-
-## 2. Functional Requirements
-### FR-1: Authentication & Identity
-- Email and password sign-in with client-side validation.
-- Enterprise SSO integration support.
-- Self-service password reset workflow with confirmation modal.
-- Remember-me persistent session tokens.
-
-### FR-2: Domain Landing Hub
-- High-contrast navigation cards for Devices, Sites, and Users.
-- Module preview modals with deep-link navigation.
-- Responsive layout adapting smoothly to desktop and mobile viewport sizes.
-
-### FR-3: Markdown Studio & Gate Governance
-- In-browser markdown editing and live rendering.
-- Visual status toggling (Approved, In Review, Rejected).
-- Automated phase gate verification locking downstream steps until approved.
-
-## 3. Non-Functional Requirements
-- **Performance:** First Contentful Paint (FCP) < 1.0s; Lighthouse score > 90.
-- **Accessibility:** WCAG 2.1 AA compliant contrast ratios and keyboard navigation.
-- **Security:** CSRF protection, secure HTTP-only headers, sanitized markdown output.
-`
+    title: 'Product Requirements Document (PRD)'
   },
   architecture: {
     agentName: 'Winston Architect',
+    skillName: 'acl-architecture',
     phase: 'Phase 3A: Solutioning',
     folderPath: '_acl-output/planning-artifacts/architecture',
     filename: 'architecture.md',
-    title: 'Technical Architecture Specification',
-    systemPrompt: 'You are Winston Architect, a Principal Systems Architect producing technical architecture specifications.',
-    defaultTemplate: (title, mode) => `# Technical Architecture Specification: ${title}
-
-## 1. Architecture Spine & Principles
-The architecture follows a decoupled, component-driven client architecture backed by serverless micro-services.
-
-\`\`\`mermaid
-graph TD
-    Client[React 19 SPA / Vite] --> API[Vercel Serverless Functions]
-    API --> LLM[NVIDIA NIM AI Gateway]
-    API --> GitHub[GitHub REST API Storage]
-    Client --> AuthCtx[Auth & Session Context]
-\`\`\`
-
-## 2. Data Flow & Invariants
-- **Stateless Execution:** Serverless functions operate statelessly with GitHub repository serving as the single source of truth for planning deliverables.
-- **Micro-Gate Locking:** Downstream phase deliverables cannot be advanced without explicit manager sign-off on upstream milestones.
-- **Resilient Fallbacks:** Client and API gracefully degrade to structured templates if upstream AI services encounter timeouts.
-
-## 3. Security & Compliance
-- Environment variable isolation for sensitive API tokens (NVIDIA_API_KEY, GITHUB_TOKEN).
-- Token sanitization and input validation on all API boundaries.
-`
+    title: 'Technical Architecture Specification'
   },
   ux: {
     agentName: 'Sally UX Designer',
+    skillName: 'acl-ux',
     phase: 'Phase 3B: Solutioning',
     folderPath: '_acl-output/planning-artifacts/ux',
     filename: 'ux.md',
-    title: 'UX Specification & Design System',
-    systemPrompt: 'You are Sally UX Designer, an expert UI/UX Lead creating UX specifications and design system tokens.',
-    defaultTemplate: (title, mode) => `# UX Specification & Design System: ${title}
-
-## 1. Design Direction & Visual Identity
-- **Theme:** Industrial modern high-contrast dark theme with electric teal/emerald accents.
-- **Typography:** Inter / system-ui typography hierarchy for maximum readability under field conditions.
-- **Elevation & Surfaces:** Multi-layer card depth with subtle glassmorphism and crisp borders.
-
-## 2. Key Screen Blueprints
-1. **Authentication Portal:** Split-screen layout featuring equipment visual branding and high-focus login card.
-2. **Landing Launchpad:** Clean greeting hero banner followed by a 3-column responsive card grid.
-3. **Module Modal:** Contextual overlay with feature highlights and 1-click domain transition.
-`
+    title: 'UX Specification & Design System'
   },
   epics_stories: {
     agentName: 'Scrum Lead',
+    skillName: 'acl-create-epics-and-stories',
     phase: 'Phase 3C: Solutioning',
     folderPath: '_acl-output/planning-artifacts/epics',
     filename: 'epics.md',
-    title: 'Epics & User Stories Breakdown',
-    systemPrompt: 'You are Scrum Lead, breaking down product requirements into detailed Agile Epics, User Stories, and Acceptance Criteria.',
-    defaultTemplate: (title, mode) => `# Epics & User Stories Breakdown: ${title}
-
-## Epic 1: Authentication & Access Control
-- **Story 1.1: Core Login & Authentication UI**
-  - *Description:* Implement split-screen login page with form validation and error handling.
-  - *Acceptance Criteria:* Valid credentials grant session; invalid input displays clear inline errors.
-- **Story 1.2: Password Reset & Modal Interaction**
-  - *Description:* Implement self-service password recovery modal with email confirmation.
-
-## Epic 2: Domain Navigation Launchpad
-- **Story 2.1: Domain Navigation Cards**
-  - *Description:* Implement high-contrast cards for Devices, Sites, and Users.
-- **Story 2.2: Module Preview & Deep Linking**
-  - *Description:* Implement interactive module preview modal with routing transitions.
-
-## Epic 3: Studio & Governance Engine
-- **Story 3.1: Live Markdown Studio**
-  - *Description:* Implement split-screen visual markdown editor and viewer.
-- **Story 3.2: AI Step Generator & Micro-Gate Validation**
-  - *Description:* Connect AI generation pipeline with phase gate approval checks.
-`
+    title: 'Epics & User Stories Breakdown'
   },
   implementation_scaffold: {
     agentName: 'Amelia Developer',
+    skillName: 'acl-quick-dev',
     phase: 'Phase 4: Implementation',
     folderPath: '_acl-output/planning-artifacts/implementation',
     filename: 'step-01-scaffold.md',
-    title: 'Implementation Plan & Project Scaffold',
-    systemPrompt: 'You are Amelia Developer, a Senior Software Engineer defining technical implementation steps.',
-    defaultTemplate: (title, mode) => `# Implementation Plan & Project Scaffold: ${title}
-
-## Technical Setup & Dependencies
-- Configure React 19, Vite 8, Babel compiler plugins.
-- Setup directory tree for components, features, and context providers.
-
-## Implementation Tasks
-1. Verify build pipeline and linting configurations.
-2. Scaffold base layout, split container, and token variables.
-3. Connect router pages and context state.
-`
+    title: 'Implementation Plan & Project Scaffold'
   },
   quick_dev: {
     agentName: 'Amelia Developer',
+    skillName: 'acl-quick-dev',
     phase: 'Phase 4: Implementation',
     folderPath: '_acl-output/planning-artifacts/implementation',
     filename: 'quick-dev.md',
-    title: 'Targeted Patch Plan & Quick Implementation',
-    systemPrompt: 'You are Amelia Developer, writing targeted patch implementation specifications.',
-    defaultTemplate: (title, mode) => `# Targeted Patch Plan: ${title}
-
-## Patch Scope
-Targeted module improvements and verification tests for ${title}.
-
-## Execution Checklist
-- [x] Implement component updates
-- [x] Verify responsive styling
-- [x] Run test verification
-`
+    title: 'Targeted Patch Plan & Quick Implementation'
   },
   story_impl: {
     agentName: 'Amelia Developer',
+    skillName: 'acl-quick-dev',
     phase: 'Phase 4: Implementation',
     folderPath: '_acl-output/planning-artifacts/implementation',
     filename: 'story-1.1.md',
-    title: 'Story 1.1 Implementation Specification',
-    systemPrompt: 'You are Amelia Developer, creating a user story implementation specification with test criteria.',
-    defaultTemplate: (title, mode, storyId) => `# Story ${storyId || '1.1'} Implementation Specification
-
-## Story Summary
-Implementation of Story ${storyId || '1.1'} for ${title}.
-
-## Implementation Details
-- Component implementation in \`src/features/\`
-- Style definitions adhering to design tokens
-- Unit and integration tests
-
-## Acceptance Verification
-- [x] All acceptance criteria met
-- [x] Micro-gate review ready
-`
+    title: 'Story Implementation Specification'
   }
 };
 
+// 1. Read the agent's exact SKILL.md instructions
+async function loadSkillInstructions(skillName, owner, repo, token) {
+  const root = process.cwd();
+  const candidatePaths = [
+    path.join(root, '.agents', 'skills', skillName, 'SKILL.md'),
+    path.join(root, '.claude', 'skills', skillName, 'SKILL.md')
+  ];
+
+  for (const p of candidatePaths) {
+    if (fs.existsSync(p)) {
+      try {
+        const content = fs.readFileSync(p, 'utf8');
+        if (content && content.trim().length > 0) {
+          return content;
+        }
+      } catch (e) {
+        console.warn(`[generate-step] Failed to read local skill ${p}:`, e.message);
+      }
+    }
+  }
+
+  // Fallback to GitHub if running in serverless cloud without local skill files
+  if (token || owner) {
+    const urls = [
+      `https://raw.githubusercontent.com/${owner}/${repo}/main/.agents/skills/${skillName}/SKILL.md`,
+      `https://raw.githubusercontent.com/${owner}/${repo}/main/.claude/skills/${skillName}/SKILL.md`
+    ];
+    for (const url of urls) {
+      try {
+        const res = await fetch(url, {
+          headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+        });
+        if (res.ok) {
+          const text = await res.text();
+          if (text && text.trim().length > 0) return text;
+        }
+      } catch (err) {
+        console.warn(`[generate-step] GitHub skill fetch error (${url}):`, err.message);
+      }
+    }
+  }
+
+  return `You are an expert AI agent executing the ${skillName} task in the ACL-ADLC lifecycle. Produce a complete, detailed, production-ready deliverable with full technical and business context.`;
+}
+
+// 2. Read all existing upstream deliverables from _acl-output
+async function loadUpstreamDeliverables(owner, repo, token) {
+  const deliverables = [];
+  const root = process.cwd();
+  const scanDirs = ['_acl-output', '_acl_output', 'acl-output'];
+
+  function walk(dir) {
+    if (!fs.existsSync(dir)) return;
+    try {
+      const entries = fs.readdirSync(dir, { withFileTypes: true });
+      for (const entry of entries) {
+        const full = path.join(dir, entry.name);
+        if (entry.isDirectory() && entry.name !== 'node_modules' && entry.name !== '.git') {
+          walk(full);
+        } else if (entry.isFile() && entry.name.endsWith('.md') && !entry.name.startsWith('.')) {
+          try {
+            const content = fs.readFileSync(full, 'utf8');
+            deliverables.push({
+              path: path.relative(root, full).replace(/\\/g, '/'),
+              filename: entry.name,
+              content
+            });
+          } catch (e) {}
+        }
+      }
+    } catch (e) {}
+  }
+
+  for (const d of scanDirs) {
+    walk(path.join(root, d));
+  }
+
+  // If local files are empty, fetch from GitHub
+  if (deliverables.length === 0 && (token || owner)) {
+    try {
+      const treeRes = await fetch(`https://api.github.com/repos/${owner}/${repo}/git/trees/main?recursive=1`, {
+        headers: {
+          'Accept': 'application/vnd.github.v3+json',
+          'User-Agent': 'ACL-Markdown-Studio',
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+        }
+      });
+      if (treeRes.ok) {
+        const treeData = await treeRes.json();
+        const aclBlobs = (treeData.tree || []).filter(item =>
+          item.type === 'blob' &&
+          item.path.endsWith('.md') &&
+          !path.basename(item.path).startsWith('.') &&
+          (item.path.startsWith('_acl-output/') || item.path.startsWith('_acl_output/') || item.path.startsWith('acl-output/'))
+        );
+
+        for (const blob of aclBlobs) {
+          try {
+            const rawRes = await fetch(`https://raw.githubusercontent.com/${owner}/${repo}/main/${blob.path}`, {
+              headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+            });
+            if (rawRes.ok) {
+              const content = await rawRes.text();
+              deliverables.push({
+                path: blob.path,
+                filename: path.basename(blob.path),
+                content
+              });
+            }
+          } catch (e) {}
+        }
+      }
+    } catch (e) {}
+  }
+
+  return deliverables;
+}
+
+// 3. Call NVIDIA NIM AI
 async function callNvidiaAI(apiKey, model, systemPrompt, userPrompt) {
   const url = 'https://integrate.api.nvidia.com/v1/chat/completions';
   const res = await fetch(url, {
@@ -279,6 +228,7 @@ async function callNvidiaAI(apiKey, model, systemPrompt, userPrompt) {
   return choice.message.content;
 }
 
+// 4. Save to GitHub via REST API
 async function saveToGitHub(owner, repo, token, filePath, content, commitMessage) {
   if (!token) return { saved: false, reason: 'No GITHUB_TOKEN configured' };
   try {
@@ -347,25 +297,70 @@ export default async function handler(req, res) {
     } = req.body || {};
 
     const apiKey = process.env.NVIDIA_API_KEY || reqApiKey || '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';
+    const owner = process.env.GITHUB_OWNER || 'karthick1827';
+    const repo = process.env.GITHUB_REPO || 'sample';
+    const token = process.env.GITHUB_TOKEN;
+
     const def = STEP_DEFINITIONS[stepKey] || STEP_DEFINITIONS.brief;
     const filename = (stepKey === 'story_impl' && storyId) ? `story-${storyId}.md` : def.filename;
+    const title = (stepKey === 'story_impl' && storyId) ? `Story ${storyId} Implementation Specification` : def.title;
 
+    // STEP A: Read the actual SKILL.md file for this agent
+    const skillInstructions = await loadSkillInstructions(def.skillName, owner, repo, token);
+
+    // STEP B: Read all upstream approved deliverables from _acl-output
+    const upstreamDeliverables = await loadUpstreamDeliverables(owner, repo, token);
+
+    let upstreamContextText = '';
+    if (upstreamDeliverables.length > 0) {
+      upstreamContextText = upstreamDeliverables.map(d => `
+--------------------------------------------------------------------------------
+DOCUMENT: ${d.path} (${d.filename})
+--------------------------------------------------------------------------------
+${d.content}
+`).join('\n\n');
+    } else {
+      upstreamContextText = 'No prior upstream deliverables found. This is the initial step of the workflow.';
+    }
+
+    // STEP C: Construct the complete system prompt and rich user prompt
+    const systemPrompt = `${skillInstructions}
+
+You are acting as "${def.agentName}". You must follow all rules, structure templates, validation invariants, and guidelines specified in this skill definition.`;
+
+    const userPrompt = `You are executing the delivery workflow step "${stepKey}" (${title}) for project "${projectTitle}".
+Workflow Mode: ${mode}
+
+================================================================================
+UPSTREAM APPROVED DELIVERABLES (READ THOROUGHLY AND PRESERVE ALL CONTEXT):
+================================================================================
+${upstreamContextText}
+
+================================================================================
+TASK INSTRUCTIONS:
+================================================================================
+${customPrompt || `Generate the complete, in-depth, production-grade deliverable for "${title}" following ALL rules and structures in your skill instructions.
+- Fully consume, align with, and build directly upon the upstream deliverables provided above.
+- Maintain consistent entity names, architecture decisions, API designs, UX concepts, and domain terms from the upstream documents.
+- Do NOT generate placeholders or truncated summaries; write full, detailed specifications.`}
+`;
+
+    // STEP D: Execute AI generation via NVIDIA NIM API
     let generatedBody = '';
-    const userPrompt = customPrompt || `Generate the complete, professional deliverable for ${def.title} for project "${projectTitle}". Workflow Mode: ${mode}.`;
-
     try {
       if (apiKey) {
-        generatedBody = await callNvidiaAI(apiKey, model, def.systemPrompt, userPrompt);
+        generatedBody = await callNvidiaAI(apiKey, model, systemPrompt, userPrompt);
       }
     } catch (aiErr) {
-      console.warn('[generate-step] AI generation warning, falling back to structured template:', aiErr.message);
+      console.error('[generate-step] NVIDIA API generation error:', aiErr.message);
+      throw new Error(`AI Generation failed: ${aiErr.message}`);
     }
 
     if (!generatedBody || generatedBody.trim().length === 0) {
-      generatedBody = def.defaultTemplate(projectTitle, mode, storyId);
+      throw new Error('NVIDIA AI returned an empty response.');
     }
 
-    // Strip existing frontmatter if LLM generated any duplicate
+    // Strip existing frontmatter if the model included duplicate frontmatter
     const cleanBody = generatedBody.replace(/^---[\s\S]*?---\n*/, '').trim();
 
     const frontmatter = `---
@@ -375,14 +370,16 @@ workflow_mode: ${mode}
 created_at: ${new Date().toISOString()}
 reviewed_by: Pending Manager Review
 step_key: ${stepKey}
-title: "${def.title}"
+title: "${title}"
+skill_source: "${def.skillName}/SKILL.md"
+upstream_documents_read: [${upstreamDeliverables.map(d => `"${d.filename}"`).join(', ')}]
 ---
 
 `;
 
     const fullContent = frontmatter + cleanBody;
 
-    // Save to local filesystem if accessible
+    // STEP E: Save to local filesystem
     try {
       const targetDir = path.resolve(process.cwd(), def.folderPath);
       if (!fs.existsSync(targetDir)) {
@@ -390,22 +387,18 @@ title: "${def.title}"
       }
       fs.writeFileSync(path.join(targetDir, filename), fullContent, 'utf8');
     } catch (fsErr) {
-      console.warn('[generate-step] Local fs write warning (normal in serverless):', fsErr.message);
+      console.warn('[generate-step] Local fs write warning (expected in serverless):', fsErr.message);
     }
 
-    // Save to GitHub if configured
-    const token = process.env.GITHUB_TOKEN;
-    const owner = process.env.GITHUB_OWNER || 'karthick1827';
-    const repo = process.env.GITHUB_REPO || 'sample';
+    // STEP F: Save to GitHub
     const filePath = `${def.folderPath}/${filename}`.replace(/^\/+/, '');
-
     const gitResult = await saveToGitHub(
       owner,
       repo,
       token,
       filePath,
       fullContent,
-      `docs: generate ${filename} via AI [In Review]`
+      `docs: generate ${filename} via ${def.agentName} [In Review]`
     );
 
     const fileId = `${def.folderPath}_${filename}`.replace(/[^a-zA-Z0-9_-]/g, '_');
@@ -413,6 +406,8 @@ title: "${def.title}"
     return res.status(200).json({
       success: true,
       agentName: def.agentName,
+      skillUsed: `${def.skillName}/SKILL.md`,
+      upstreamDocumentsRead: upstreamDeliverables.map(d => d.filename),
       githubSaved: gitResult.saved,
       file: {
         id: fileId,
