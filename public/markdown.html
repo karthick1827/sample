@@ -1264,6 +1264,7 @@
   </div>
 
   <script>
+    const SERVER_API_HOST = typeof window !== 'undefined' && window.SERVER_API_HOST ? window.SERVER_API_HOST : '';
     let files = [];
     let activeFileId = null;
     let isDirty = false;
