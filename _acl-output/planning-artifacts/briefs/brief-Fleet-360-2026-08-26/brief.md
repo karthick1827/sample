@@ -1,8 +1,6 @@
 ---
-status: Rejected
-reviewed_by: Manager (via Markdown Studio)
-review_timestamp: 2026-09-01T09:45:35.333Z
-gate_signature: ACL-STUDIO-APPROVAL-REJECTED
+status: In Review
+reviewed_by: Pending Manager Review
 title: "Product Brief - Fleet 360: Login Portal and Landing Experience"
 created: "2026-08-26"
 updated: "2026-08-26"
