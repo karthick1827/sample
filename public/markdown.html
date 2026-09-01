@@ -1297,7 +1297,14 @@
       return isAclOutput;
     }
 
-async function syncFromLiveDisk(quiet = false) {
+    let lastSavedTime = 0;
+
+    async function syncFromLiveDisk(quiet = false) {
+      // Do not overwrite editor if user is typing or if a save occurred in the last 4 seconds
+      if (isDirty || (Date.now() - lastSavedTime < 4000)) {
+        return false;
+      }
+
       try {
         const res = await fetch("/api/list-markdown-files");
         if (res.ok) {
@@ -1315,48 +1322,47 @@ async function syncFromLiveDisk(quiet = false) {
               setSyncStatus('Synced with VS Code (0 files in _acl-output)', 'green');
               return true;
             }
-            const hasChanged =
-              JSON.stringify(
-                filteredFiles.map((f) => ({
-                  id: f.id,
-                  content: f.content,
-                  status: f.status,
-                  updatedAt: f.updatedAt,
-                })),
-              ) !==
-              JSON.stringify(
-                files.map((f) => ({
-                  id: f.id,
-                  content: f.content,
-                  status: f.status,
-                  updatedAt: f.updatedAt,
-                })),
-              );
+
+            const normalizedServerFiles = filteredFiles.map((f) => ({
+              ...f,
+              status:
+                f.status === 'Accepted' || f.status === 'approved' || f.status === 'Approved'
+                  ? 'Approved'
+                  : f.status === 'Rejected'
+                  ? 'Rejected'
+                  : 'In Review',
+            }));
+
+            // Compare only ID, status, and content (ignore volatile timestamp differences)
+            const serverSig = JSON.stringify(normalizedServerFiles.map((f) => ({ id: f.id, status: f.status, content: f.content })));
+            const localSig = JSON.stringify(files.map((f) => ({ id: f.id, status: f.status, content: f.content })));
+            const hasChanged = serverSig !== localSig;
 
             if (hasChanged || files.length === 0) {
-              files = filteredFiles.map((f) => ({
-                ...f,
-                status:
-                  f.status === 'Accepted' || f.status === 'approved'
-                    ? 'Approved'
-                    : f.status || 'In Review',
-              }));
+              files = normalizedServerFiles;
               try {
                 localStorage.setItem('acl_adlc_project_markdown_files', JSON.stringify(files));
               } catch (e) {}
               renderFileTree();
-              if (activeFileId && files.some((f) => f.id === activeFileId)) {
+
+              if (!isDirty && activeFileId && files.some((f) => f.id === activeFileId)) {
                 const active = getActiveFile();
                 if (active) {
-                  document.getElementById('markdownTextarea').value = active.content;
-                  document.getElementById('statusSelect').value = active.status;
+                  const textarea = document.getElementById('markdownTextarea');
+                  const statusSelect = document.getElementById('statusSelect');
+                  if (textarea && textarea.value !== active.content) {
+                    textarea.value = active.content;
+                  }
+                  if (statusSelect && statusSelect.value !== active.status) {
+                    statusSelect.value = active.status;
+                  }
                   renderPreview();
                 }
-              } else if (files.length > 0) {
+              } else if (files.length > 0 && !activeFileId) {
                 loadFile(files[0].id);
               }
             }
-            setSyncStatus('Synced with VS Code (Local Test Mode)', 'green');
+            setSyncStatus('Synced with VS Code (Live Sync Active)', 'green');
             evaluateProceedButton();
             return true;
           }
@@ -1407,9 +1413,11 @@ async function syncFromLiveDisk(quiet = false) {
                 .map((f) => ({
                   ...f,
                   status:
-                    f.status === 'Accepted' || f.status === 'approved'
+                    f.status === 'Accepted' || f.status === 'approved' || f.status === 'Approved'
                       ? 'Approved'
-                      : f.status || 'In Review',
+                      : f.status === 'Rejected'
+                      ? 'Rejected'
+                      : 'In Review',
                 }));
             }
           }
@@ -1431,7 +1439,7 @@ async function syncFromLiveDisk(quiet = false) {
         if (!isDirty) {
           syncFromLiveDisk(true);
         }
-      }, 2500);
+      }, 3000);
 
       window.addEventListener('focus', () => {
         if (!isDirty) {
@@ -1451,15 +1459,20 @@ async function syncFromLiveDisk(quiet = false) {
       file.content = content;
       file.status = status;
       file.updatedAt = nowIso;
+      lastSavedTime = Date.now();
 
       renderPreview();
+      renderFileTree();
+      evaluateProceedButton();
+
       try {
         localStorage.setItem('acl_adlc_project_markdown_files', JSON.stringify(files));
       } catch (e) {}
 
-      // Save to disk locally (No remote Git push during testing)
+      setSyncStatus('Saving status...', 'yellow');
+
       try {
-        await fetch('/api/save-markdown', {
+        const res = await fetch('/api/save-markdown', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -1470,18 +1483,28 @@ async function syncFromLiveDisk(quiet = false) {
             autoPush: false,
           }),
         });
-      } catch (e) {}
+
+        if (res.ok) {
+          lastSavedTime = Date.now();
+          setSyncStatus('Saved locally to disk & synced ✔', 'green');
+          if (status === 'Approved' || status === 'Accepted') {
+            showToast(`🎉 Approved '${file.filename}' & Gate Unlocked!`, 'success');
+          } else if (status === 'Rejected') {
+            showToast(`🔴 Rejected '${file.filename}' & Gate Blocked`, 'error');
+          } else {
+            showToast(`Saved '${file.filename}' [${status}] (Waiting for Manager Sign-off)`, 'info');
+          }
+        } else {
+          const errData = await res.json().catch(() => ({}));
+          console.warn('[saveCurrentFile] Server response not ok:', errData);
+          setSyncStatus('Saved locally in browser cache', 'yellow');
+        }
+      } catch (e) {
+        console.warn('[saveCurrentFile] Fetch error:', e);
+        setSyncStatus('Saved locally in browser cache', 'yellow');
+      }
 
       isDirty = false;
-      setSyncStatus('Saved locally to disk & VS Code ✔', 'green');
-
-      if (status === 'Approved' || status === 'Accepted') {
-        showToast(`🎉 Approved '${file.filename}' & Gate Unlocked!`, 'success');
-      } else if (status === 'Rejected') {
-        showToast(`🔴 Rejected '${file.filename}' & Gate Blocked`, 'error');
-      } else {
-        showToast(`Saved '${file.filename}' [${status}] (Waiting for Manager Sign-off)`, 'info');
-      }
       renderFileTree();
       evaluateProceedButton();
     }
@@ -1492,16 +1515,17 @@ async function syncFromLiveDisk(quiet = false) {
       const gateSig = 'ACL-STUDIO-APPROVAL-' + cleanStatus.toUpperCase().replace(/\s+/g, '-');
       const managedKeys = ['status', 'reviewed_by', 'review_timestamp', 'review_source', 'gate_signature'];
 
-      if (content.startsWith('---')) {
-        const parts = content.split('---');
+      const trimmed = (content || '').trimStart();
+      if (trimmed.startsWith('---')) {
+        const parts = trimmed.split('---');
         if (parts.length >= 3) {
           const fmRaw = parts[1];
           const body = parts.slice(2).join('---');
 
           const fmLines = fmRaw.split(/\r?\n/).filter(line => {
-            const trimmed = line.trim();
-            if (!trimmed) return false;
-            return !managedKeys.some(key => new RegExp('^' + key + '\\s*:', 'i').test(trimmed));
+            const tr = line.trim();
+            if (!tr) return false;
+            return !managedKeys.some(key => new RegExp('^' + key + '\\s*:', 'i').test(tr));
           });
 
           const newFmLines = [
@@ -1516,13 +1540,12 @@ async function syncFromLiveDisk(quiet = false) {
         }
       }
 
-      const contentLines = content.split(/\r?\n/).filter(line => {
-        const trimmed = line.trim();
-        return !managedKeys.some(key => new RegExp('^' + key + '\\s*:', 'i').test(trimmed));
+      const contentLines = (content || '').split(/\r?\n/).filter(line => {
+        const tr = line.trim();
+        return !managedKeys.some(key => new RegExp('^' + key + '\\s*:', 'i').test(tr));
       });
 
       const cleanBody = contentLines.join('\n').trimStart();
-
       return '---\nstatus: ' + cleanStatus + '\nreviewed_by: Manager (via Markdown Studio)\nreview_timestamp: ' + nowIso + '\ngate_signature: ' + gateSig + '\n---\n\n' + cleanBody;
     }
 
@@ -1530,15 +1553,21 @@ async function syncFromLiveDisk(quiet = false) {
       const file = getActiveFile();
       if (!file) return;
 
-      file.status = newStatus;
+      const normStatus = (newStatus === 'Accepted' || newStatus === 'approved') ? 'Approved' : (newStatus || 'In Review');
+      file.status = normStatus;
       const nowIso = new Date().toISOString();
       file.updatedAt = nowIso;
+      lastSavedTime = Date.now();
 
       const currentContent = document.getElementById("markdownTextarea").value || "";
-      const updatedContent = updateDocumentStatusFrontmatter(currentContent, newStatus, nowIso);
+      const updatedContent = updateDocumentStatusFrontmatter(currentContent, normStatus, nowIso);
 
       document.getElementById("markdownTextarea").value = updatedContent;
       file.content = updatedContent;
+
+      renderPreview();
+      renderFileTree();
+      evaluateProceedButton();
 
       await saveCurrentFile();
     }

@@ -1,4 +1,29 @@
 
+import fs from 'node:fs';
+import path from 'node:path';
+
+// Helper to load .env into process.env during Vite dev
+function loadLocalEnv() {
+  try {
+    const envFile = path.resolve(process.cwd(), '.env');
+    if (fs.existsSync(envFile)) {
+      const lines = fs.readFileSync(envFile, 'utf8').split('\n');
+      for (const line of lines) {
+        const trimmed = line.trim();
+        if (trimmed && !trimmed.startsWith('#') && trimmed.includes('=')) {
+          const [k, ...v] = trimmed.split('=');
+          const val = v.join('=').trim().replace(/^["']|["']$/g, '');
+          if (!process.env[k.trim()]) {
+            process.env[k.trim()] = val;
+          }
+        }
+      }
+    }
+  } catch (e) {}
+}
+
+loadLocalEnv();
+
 // ACL-ADLC Markdown Studio & API Middleware
 function aclApiPlugin() {
   return {
@@ -21,15 +46,14 @@ function aclApiPlugin() {
 
         try {
           if (req.method === 'POST' && !req.body) {
-            let body = '';
-            for await (const chunk of req) {
-              body += chunk;
-            }
-            try {
-              req.body = JSON.parse(body || '{}');
-            } catch (e) {
-              req.body = {};
-            }
+            req.body = await new Promise((resolve) => {
+              let data = '';
+              req.on('data', chunk => { data += chunk; });
+              req.on('end', () => {
+                try { resolve(JSON.parse(data || '{}')); } catch(e) { resolve({}); }
+              });
+              req.on('error', () => resolve({}));
+            });
           }
 
           res.status = (code) => {

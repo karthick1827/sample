@@ -81,10 +81,30 @@ export default async function handler(req, res) {
       console.warn('[save-markdown] Local filesystem write warning (expected in serverless):', fsErr.message);
     }
 
+function getEnv(key, fallback = '') {
+  if (process.env[key]) return process.env[key];
+  try {
+    const envPath = path.resolve(process.cwd(), '.env');
+    if (fs.existsSync(envPath)) {
+      const lines = fs.readFileSync(envPath, 'utf8').split('\n');
+      for (const line of lines) {
+        const trimmed = line.trim();
+        if (trimmed && !trimmed.startsWith('#') && trimmed.includes('=')) {
+          const [k, ...v] = trimmed.split('=');
+          if (k.trim() === key) {
+            return v.join('=').trim().replace(/^["']|["']$/g, '');
+          }
+        }
+      }
+    }
+  } catch (e) {}
+  return fallback;
+}
+
     // Save to GitHub via API
-    const token = process.env.GITHUB_TOKEN;
-    const owner = process.env.GITHUB_OWNER || 'karthick1827';
-    const repo = process.env.GITHUB_REPO || 'sample';
+    const token = getEnv('GITHUB_TOKEN');
+    const owner = getEnv('GITHUB_OWNER', 'karthick1827');
+    const repo = getEnv('GITHUB_REPO', 'sample');
     const relativePath = (folderPath ? `${folderPath}/${filename}` : filename).replace(/^\/+/, '');
 
     const commitMsg = `docs: update ${filename} [${status || 'Approved'}]`;
