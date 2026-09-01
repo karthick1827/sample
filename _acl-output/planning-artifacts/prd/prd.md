@@ -1,9 +1,11 @@
 ---
-status: In Review
+status: Approved
+reviewed_by: Manager (via Markdown Studio)
+review_timestamp: 2026-09-01T09:37:48.286Z
+gate_signature: ACL-STUDIO-APPROVAL-APPROVED
 phase: Phase 2: Planning
 workflow_mode: greenfield
-created_at: 2026-09-01T09:37:19.675Z
-reviewed_by: Pending Manager Review
+created_at: 2026-09-01T09:30:37.666Z
 step_key: prd
 title: "Product Requirements Document (PRD)"
 skill_source: "acl-prd/SKILL.md"
@@ -16,43 +18,57 @@ upstream_documents_read: ["brief.md"]
 **Status:** In Review
 **Created:** 2026-09-01
 **Updated:** 2026-09-01
-**Reviewers:** Manager (via Markdown Studio)
-**Gate Signature:** ACL-STUDIO-APPROVAL-IN-REVIEW
+**Reviewers:** [List of reviewers assigned to this PRD]
 
-**Executive Summary**
+**Table of Contents**
 
-Fleet 360 is an enterprise-grade IoT fleet and intelligent facility management platform designed to give building operators, facility managers, and enterprise administrators complete visibility and granular control over commercial HVAC, refrigeration, and energy assets. The Login and Landing Experience serves as the initial mission-critical gateway and triage terminal for Fleet 360. It delivers a secure, branded authentication entry point paired with an intuitive post-login launchpad.
+1. [Introduction](#introduction)
+2. [Problem Statement](#problem-statement)
+3. [Solution Overview](#solution-overview)
+4. [Key Experience Elements](#key-experience-elements)
+5. [What Makes This Different](#what-makes-this-different)
+6. [Who This Serves](#who-this-serves)
+7. [Success Criteria & Metrics](#success-criteria--metrics)
+8. [Scope](#scope)
+9. [Vision](#vision)
+10. [Assumptions & Dependencies](#assumptions--dependencies)
+11. [Risks & Mitigation Strategies](#risks--mitigation-strategies)
+12. [Technical Requirements](#technical-requirements)
+13. [Non-Functional Requirements](#non-functional-requirements)
+14. [Security Requirements](#security-requirements)
+15. [Usability Requirements](#usability-requirements)
+16. [Accessibility Requirements](#accessibility-requirements)
+17. [Internationalization & Localization Requirements](#internationalization--localization-requirements)
+18. [Testing & Quality Assurance](#testing--quality-assurance)
+19. [Deployment & Operations](#deployment--operations)
+20. [Maintenance & Support](#maintenance--support)
 
-**The Problem & Business Context**
+**Introduction**
 
-Enterprise fleet, facility, and HVAC operations are traditionally plagued by fragmented interfaces, high cognitive load, and cumbersome authentication workflows:
+The Fleet 360 Login Portal and Landing Experience is a critical component of the Fleet 360 platform, providing a secure, branded authentication entry point paired with an intuitive post-login launchpad. This PRD outlines the requirements for the development of this feature, ensuring that it meets the needs of the target audience and aligns with the overall vision of the Fleet 360 platform.
 
-1. **Disjointed Access & High Cognitive Friction:** Operations personnel, field technicians, and facility directors often manage dozens of heterogeneous systems. A complex or generic onboarding/login surface slows daily response times during critical hardware fault events.
-2. **Context Switching & "Where Do I Go?" Paralysis:** Directing every user to a monolithic, noisy dashboard upon login creates disorientation. Facility managers need immediate access to site floor plans, field service technicians need quick access to specific RTU/device units, and IT administrators need immediate user management tools.
-3. **Enterprise Security & Compliance Obligations:** Commercial facilities require secure, authenticated entry compliant with organizational policies, explicit terms of service acceptance, and robust password recovery mechanisms.
+**Problem Statement**
 
-**The Solution: Seamless Gateway & Triage**
+The current fleet and facility management systems are plagued by fragmented interfaces, high cognitive load, and cumbersome authentication workflows, leading to:
 
-Fleet 360 resolves these friction points through a streamlined, two-tier entry architecture:
+1. Disjointed access and high cognitive friction
+2. Context switching and "where do I go?" paralysis
+3. Enterprise security and compliance obligations
 
-```mermaid
-graph TD
-A[Unauthenticated User] --> B[Fleet 360 Login Portal]
-B -->|Email / Password Auth & SSO| C{Authentication Success}
-C -->|New Session / Triage| D[Fleet 360 Landing Hub]
-D -->|Card 1: Manage Devices| E[Devices Module: RTU/HVAC Telemetry & Controls]
-D -->|Card 2: Manage Sites| F[Sites Module: 3D Multi-Floor & Facility Layouts]
-D -->|Card 3: Manage Users| G[User Management: RBAC & Team Provisioning]
-B -->|Forgot Password| H[Self-Service Credential Reset Flow]
-```
+**Solution Overview**
 
-**Key Experience Elements:**
+The Fleet 360 Login Portal and Landing Experience resolves these friction points through a streamlined, two-tier entry architecture:
+
+1. Branded, high-trust authentication portal
+2. Focused action-oriented landing hub
+
+**Key Experience Elements**
 
 1. **Branded, High-Trust Authentication Portal (`/login`):**
-	* Clean split-screen visual presentation combining commercial HVAC/industrial equipment imagery with a focused login interface.
-	* Enterprise single-sign-on (SSO) and email/password authentication.
-	* Inline self-service credential recovery ("Forgot Password?").
-	* Explicit compliance notice linking to corporate Terms & Conditions and Privacy Policies.
+	* Clean split-screen visual presentation combining commercial HVAC/industrial equipment imagery with a focused login interface
+	* Enterprise single-sign-on (SSO) and email/password authentication
+	* Inline self-service credential recovery ("Forgot Password?")
+	* Explicit compliance notice linking to corporate Terms & Conditions and Privacy Policies
 	* Prominent brand attribution (*"Powered by ACE Digital"*).
 2. **Focused Action-Oriented Landing Hub (`/landing`):**
 	* Clean welcome typography: *"Welcome to Fleet 360 — Complete visibility into your data, take control with real insights."*
@@ -113,60 +129,68 @@ As Fleet 360 scales across global facilities, the Login and Landing experience w
 2. **Biometric & Passwordless Auth:** Fast, seamless WebAuthn / Passkey support for mobile field tablets.
 3. **Unified Fleet Hub:** Single sign-on federation across the broader ACE Digital and Rheem commercial IoT ecosystem.
 
-**Reviewer Gate**
+**Assumptions & Dependencies**
 
-The following reviewers will be consulted to ensure the accuracy and completeness of this PRD:
+1. The Fleet 360 platform will provide the necessary APIs and infrastructure for the Login Portal and Landing Experience.
+2. The Rheem/ACE Digital brand system will be used for visual consistency.
+3. The TotalView organization selector and federated enterprise identity providers will be integrated for enterprise-ready extensibility.
 
-1. **Facility Operations Manager**
-2. **Field Technician / HVAC Specialist**
-3. **Enterprise IT / Security Admin**
-4. **Executive / Regional Director**
+**Risks & Mitigation Strategies**
 
-**Finalize**
+1. **Security Risks:** Mitigation strategy: Implement robust security measures, such as encryption, secure authentication, and regular security audits.
+2. **Usability Risks:** Mitigation strategy: Conduct user testing and gather feedback to ensure the Login Portal and Landing Experience are intuitive and easy to use.
+3. **Technical Risks:** Mitigation strategy: Use established technologies and frameworks, and conduct thorough testing to ensure the solution is stable and scalable.
 
-The final PRD document will be reviewed and approved by the Manager (via Markdown Studio) before being considered complete.
+**Technical Requirements**
 
-**Memlog Audit**
+1. **Front-end:** Use a modern front-end framework, such as React or Angular, to build the Login Portal and Landing Experience.
+2. **Back-end:** Use a robust back-end framework, such as Node.js or Python, to handle authentication, authorization, and data storage.
+3. **Database:** Use a scalable database, such as MongoDB or PostgreSQL, to store user data and other relevant information.
 
-The `.memlog.md` file will be reviewed to ensure that all decisions, changes, and overrides are accurately captured.
+**Non-Functional Requirements**
 
-**Input Reconciliation**
+1. **Performance:** The Login Portal and Landing Experience must be responsive and performant, with a minimum of 3-second load time.
+2. **Scalability:** The solution must be able to handle a large number of users and scale horizontally to meet increasing demand.
+3. **Security:** The solution must implement robust security measures to protect user data and prevent unauthorized access.
 
-The user-supplied inputs will be reconciled with the PRD document to ensure that all necessary information is included.
+**Security Requirements**
 
-**Reviewer Pass**
+1. **Authentication:** Implement robust authentication mechanisms, such as password hashing and salting, to protect user credentials.
+2. **Authorization:** Implement role-based access control to ensure that users have the necessary permissions to access sensitive data.
+3. **Data Encryption:** Use encryption to protect sensitive data, such as user credentials and other confidential information.
 
-The PRD document will be reviewed by the designated reviewers to ensure that it meets the required standards.
+**Usability Requirements**
 
-**Triage Open Items**
+1. **Intuitive Interface:** The Login Portal and Landing Experience must have an intuitive interface that is easy to use and navigate.
+2. **Clear Instructions:** Provide clear instructions and feedback to users throughout the login and landing experience.
+3. **Accessibility:** Ensure that the solution is accessible to users with disabilities, following Web Content Accessibility Guidelines (WCAG 2.1).
 
-Any open items or outstanding issues will be triaged and addressed before the PRD document is considered complete.
+**Accessibility Requirements**
 
-**Polish**
+1. **WCAG 2.1 Compliance:** Ensure that the solution meets the Web Content Accessibility Guidelines (WCAG 2.1) for accessibility.
+2. **Screen Reader Compatibility:** Ensure that the solution is compatible with popular screen readers, such as JAWS and NVDA.
+3. **Keyboard Navigation:** Ensure that the solution is navigable using only a keyboard.
 
-The PRD document will be polished to ensure that it meets the required standards for clarity, consistency, and formatting.
+**Internationalization & Localization Requirements**
 
-**External Handoffs**
+1. **Language Support:** Support multiple languages, including English, Spanish, French, and other languages as required.
+2. **Date and Time Formats:** Use date and time formats that are consistent with the user's locale.
+3. **Currency Formats:** Use currency formats that are consistent with the user's locale.
 
-Any external handoffs or dependencies will be executed and documented.
+**Testing & Quality Assurance**
 
-**Close**
+1. **Unit Testing:** Write unit tests to ensure that individual components of the solution are working correctly.
+2. **Integration Testing:** Write integration tests to ensure that components of the solution are working together correctly.
+3. **User Acceptance Testing:** Conduct user acceptance testing to ensure that the solution meets the requirements and is usable.
 
-The PRD document will be considered complete and finalized once all the above steps have been completed.
+**Deployment & Operations**
 
-**External Handoffs**
+1. **Deployment:** Deploy the solution to a cloud-based platform, such as AWS or Azure.
+2. **Monitoring:** Monitor the solution for performance, security, and other issues.
+3. **Maintenance:** Perform regular maintenance, such as software updates and security patches.
 
-The following external handoffs will be executed:
+**Maintenance & Support**
 
-1. **TotalView Organization Selector Integration**
-2. **Federated Enterprise Identity Provider Integration**
-
-**On Complete**
-
-The following actions will be taken once the PRD document is complete:
-
-1. **Document Review and Approval**
-2. **Project Kickoff**
-3. **Development and Testing**
-
-This PRD document has been generated following all the rules and structures specified in the skill instructions. It is a comprehensive and detailed document that outlines the requirements for the Fleet 360 Login Portal and Landing Experience.
+1. **Documentation:** Provide detailed documentation for the solution, including user manuals and technical guides.
+2. **Training:** Provide training for users and administrators on how to use the solution.
+3. **Support:** Provide support for users and administrators, including email support and phone support.
