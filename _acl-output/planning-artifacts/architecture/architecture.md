@@ -1,9 +1,11 @@
 ---
-status: In Review
+status: Rejected
+reviewed_by: Manager (via Markdown Studio)
+review_timestamp: 2026-09-01T10:03:28.314Z
+gate_signature: ACL-STUDIO-APPROVAL-REJECTED
 phase: Phase 3A: Solutioning
 workflow_mode: greenfield
 created_at: 2026-09-01T10:00:14.223Z
-reviewed_by: Pending Manager Review
 step_key: architecture
 title: "Technical Architecture Specification"
 skill_source: "acl-architecture/SKILL.md"
