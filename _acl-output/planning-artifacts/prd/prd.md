@@ -1,8 +1,8 @@
 ---
-status: Approved
+status: In Review
 reviewed_by: Manager (via Markdown Studio)
-review_timestamp: 2026-09-01T09:52:28.489Z
-gate_signature: ACL-STUDIO-APPROVAL-APPROVED
+review_timestamp: 2026-09-01T09:45:27.400Z
+gate_signature: ACL-STUDIO-APPROVAL-IN-REVIEW
 phase: Phase 2: Planning
 workflow_mode: greenfield
 created_at: 2026-09-01T09:30:37.666Z
