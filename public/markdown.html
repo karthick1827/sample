@@ -555,6 +555,35 @@
       transform: translateY(-1px);
     }
 
+    /* Figma Integration Button */
+    .btn-figma {
+      background: #ffffff;
+      color: #7e22ce;
+      border: 1px solid #e9d5ff;
+      padding: 0.45rem 0.9rem;
+      border-radius: var(--radius-md);
+      font-size: 0.84rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+      transition: all 0.15s ease;
+      box-shadow: var(--shadow-sm);
+      user-select: none;
+    }
+    .btn-figma:hover {
+      background: #faf5ff;
+      border-color: #c084fc;
+      color: #6b21a8;
+      transform: translateY(-1px);
+    }
+    .btn-figma.connected {
+      background: #faf5ff;
+      border-color: #a855f7;
+      color: #581c87;
+    }
+
     /* Dynamic Gate Proceed Button */
     .btn-proceed {
       background: var(--accent-green);
@@ -1147,6 +1176,12 @@
       <button type="button" class="btn-help" id="btnHelp" onclick="openAclHelpModal()" title="ACL-ADLC Workflow Guide, Roles & Phase Gate Help">
         <span>💡</span>
         <span>ACL Help</span>
+      </button>
+
+      <!-- Figma Integration Button -->
+      <button type="button" class="btn-figma" id="btnFigma" onclick="openFigmaModal()" title="Connect Figma Design for 100% Deterministic Agent Extraction">
+        <span>🎨</span>
+        <span id="figmaBtnLabel">Figma Design</span>
       </button>
 
       <!-- Dynamic Gate Proceed Button -->
@@ -1998,6 +2033,9 @@
       showToast(`${roleName} is generating ${stepKey} via AI Agent...`, 'info');
 
       try {
+        const figmaUrl = localStorage.getItem('acl_figma_url') || '';
+        const figmaToken = localStorage.getItem('acl_figma_token') || '';
+
         const res = await fetch('/api/generate-step', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -2006,63 +2044,35 @@
             mode: activeWorkflowMode,
             projectTitle: 'Fleet 360 Delivery',
             apiKey: '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',
-            model: 'meta/llama-3.2-11b-vision-instruct'
+            model: 'meta/llama-3.2-11b-vision-instruct',
+            figmaUrl: figmaUrl,
+            figmaToken: figmaToken
           })
         });
 
-        if (res.ok) {
-          const data = await res.json();
-          if (data && data.success && data.file) {
-            const agentLabel = data.agentName ? `${data.agentName} ` : '';
-            showToast(`🎉 ${agentLabel}generated '${data.file.filename}' [In Review] on disk!`, 'success');
-            await syncFromLiveDisk(false);
-            if (data.file.id) {
-              loadFile(data.file.id);
-            }
-            return;
+        const data = await res.json().catch(() => ({}));
+
+        if (res.ok && data && data.success && data.file) {
+          const agentLabel = data.agentName ? `${data.agentName} ` : '';
+          const figmaBadge = data.figmaIntegrated ? ' (🎨 Figma Grounded)' : '';
+          showToast(`🎉 ${agentLabel}generated '${data.file.filename}' [In Review] on disk!${figmaBadge}`, 'success');
+          await syncFromLiveDisk(false);
+          if (data.file.id) {
+            loadFile(data.file.id);
           }
+          return;
+        } else {
+          const errMsg = data.error || `HTTP ${res.status}: Failed to generate ${stepKey}`;
+          console.error('generate-step error:', errMsg);
+          showToast(`❌ ${errMsg}`, 'danger');
+          setSyncStatus('Generation failed / blocked', 'red');
+          return;
         }
       } catch (err) {
-        console.warn('generate-step primary route warning:', err);
-      } finally {
-        if (proceedBtn) {
-          evaluateProceedButton();
-        }
-      }
-
-      // Robust fallback via /api/save-markdown
-      const fallbackMap = {
-        project_context: { folderPath: '0-context/acl-generate-project-context', filename: 'project-context.md', title: 'Project Context & Codebase Conventions' },
-        brief: { folderPath: '1-analysis/acl-product-brief', filename: 'brief.md', title: 'Product Brief' },
-        prd: { folderPath: '2-plan-workflows/acl-prd', filename: 'prd.md', title: 'Product Requirements Document (PRD)' },
-        architecture: { folderPath: '3-solutioning/acl-architecture', filename: 'architecture.md', title: 'Architecture Spine & Technical Specification' },
-        ux: { folderPath: '3-solutioning/acl-ux', filename: 'ux.md', title: 'UX Specification & Design System' },
-        epics_stories: { folderPath: '3-solutioning/acl-create-epics-and-stories', filename: 'epics.md', title: 'Epics & User Stories Breakdown' },
-        implementation_scaffold: { folderPath: '4-implementation/acl-dev-auto', filename: 'step-01-scaffold.md', title: 'Implementation Plan & Scaffold' },
-        quick_dev: { folderPath: '4-implementation/acl-quick-dev', filename: 'quick-dev.md', title: 'Targeted Patch Plan & Quick Implementation' }
-      };
-
-      const meta = fallbackMap[stepKey] || { folderPath: '1-analysis/acl-product-brief', filename: `${stepKey}.md`, title: stepKey };
-      const fallbackContent = `---\nstatus: In Review\nphase: Phase Deliverable\nworkflow_mode: ${activeWorkflowMode}\ncreated_at: ${new Date().toISOString()}\nreviewed_by: Pending Manager Review\n---\n\n# ${meta.title}\n\nDeliverable generated for manager review.\n`;
-
-      try {
-        await fetch('/api/save-markdown', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            folderPath: meta.folderPath,
-            filename: meta.filename,
-            content: fallbackContent,
-            status: 'In Review',
-            autoPush: false
-          })
-        });
-        showToast(`🎉 Generated '${meta.filename}' [In Review] on disk!`, 'success');
-        await syncFromLiveDisk(false);
-        const newId = `${meta.folderPath}_${meta.filename}`.replace(/[^a-zA-Z0-9_-]/g, '_');
-        loadFile(newId);
-      } catch (err) {
-        showToast(`Failed to generate ${meta.filename}: ${err.message}`, 'danger');
+        console.error('generate-step request error:', err);
+        showToast(`❌ Server / Network Error: ${err.message}`, 'danger');
+        setSyncStatus('Error', 'red');
+        return;
       } finally {
         if (proceedBtn) {
           evaluateProceedButton();
@@ -2337,6 +2347,7 @@
         closeWorkflowModal();
         closeBranchModal();
         closeAclHelpModal();
+        closeFigmaModal();
       } else if (e.key === '+' || e.key === '=') {
         const modal = document.getElementById('workflowModal');
         if (modal && modal.classList.contains('open')) zoomWorkflow(0.2);
@@ -2349,7 +2360,93 @@
       }
     });
 
-    window.addEventListener("DOMContentLoaded", init);
+    // Figma Modal Functions
+    function openFigmaModal() {
+      const modal = document.getElementById('figmaModal');
+      const urlInput = document.getElementById('figmaUrlInput');
+      const tokenInput = document.getElementById('figmaTokenInput');
+      if (urlInput) urlInput.value = localStorage.getItem('acl_figma_url') || '';
+      if (tokenInput) tokenInput.value = localStorage.getItem('acl_figma_token') || '';
+      updateFigmaStatusDisplay();
+      if (modal) modal.classList.add('open');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeFigmaModal(e) {
+      if (e && e.target && e.target.closest && e.target.closest('.modal-card') && !e.target.closest('.modal-close-btn')) {
+        return;
+      }
+      const modal = document.getElementById('figmaModal');
+      if (modal) modal.classList.remove('open');
+      document.body.style.overflow = '';
+    }
+
+    function saveFigmaConnection() {
+      const url = (document.getElementById('figmaUrlInput').value || '').trim();
+      const token = (document.getElementById('figmaTokenInput').value || '').trim();
+      if (url) localStorage.setItem('acl_figma_url', url);
+      else localStorage.removeItem('acl_figma_url');
+      if (token) localStorage.setItem('acl_figma_token', token);
+      else localStorage.removeItem('acl_figma_token');
+
+      updateFigmaStatusDisplay();
+      updateFigmaHeaderButton();
+      showToast('🎨 Figma connection settings saved!', 'success');
+      setTimeout(closeFigmaModal, 350);
+    }
+
+    function clearFigmaConnection() {
+      localStorage.removeItem('acl_figma_url');
+      localStorage.removeItem('acl_figma_token');
+      document.getElementById('figmaUrlInput').value = '';
+      document.getElementById('figmaTokenInput').value = '';
+      updateFigmaStatusDisplay();
+      updateFigmaHeaderButton();
+      showToast('Figma connection cleared.', 'info');
+    }
+
+    function updateFigmaStatusDisplay() {
+      const url = localStorage.getItem('acl_figma_url');
+      const token = localStorage.getItem('acl_figma_token');
+      const alert = document.getElementById('figmaStatusAlert');
+      if (!alert) return;
+      if (url && token) {
+        alert.style.display = 'block';
+        alert.style.background = 'var(--accent-green-bg)';
+        alert.style.color = 'var(--accent-green)';
+        alert.style.border = '1px solid #4ac26b';
+        alert.textContent = '✅ Figma Connected: Token and Design URL configured for agent extraction.';
+      } else if (url && !token) {
+        alert.style.display = 'block';
+        alert.style.background = 'var(--accent-yellow-bg)';
+        alert.style.color = 'var(--accent-yellow)';
+        alert.style.border = '1px solid #d4a72c';
+        alert.textContent = '⚠️ Figma URL set, but Personal Access Token is missing. Token required for API access.';
+      } else {
+        alert.style.display = 'none';
+      }
+    }
+
+    function updateFigmaHeaderButton() {
+      const btn = document.getElementById('btnFigma');
+      const label = document.getElementById('figmaBtnLabel');
+      const url = localStorage.getItem('acl_figma_url');
+      const token = localStorage.getItem('acl_figma_token');
+      if (btn && label) {
+        if (url && token) {
+          btn.classList.add('connected');
+          label.textContent = 'Figma Connected';
+        } else {
+          btn.classList.remove('connected');
+          label.textContent = 'Figma Design';
+        }
+      }
+    }
+
+    window.addEventListener("DOMContentLoaded", () => {
+      init();
+      updateFigmaHeaderButton();
+    });
   </script>
 
   <!-- Branching Suggestion Modal -->
@@ -2541,6 +2638,54 @@
           <div class="workflow-svg-wrapper" id="workflowSvgWrapper">
             <img id="workflowSvgImg" src="" alt="Workflow Diagram" draggable="false" />
           </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Figma Connection Modal -->
+  <div class="modal-backdrop" id="figmaModal" onclick="closeFigmaModal(event)">
+    <div class="modal-card" style="max-width: 620px;" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <div class="modal-title-area">
+          <span class="modal-badge-indigo">🎨 Design-to-Code Pipeline</span>
+          <h2>Figma Design Integration (100% Deterministic)</h2>
+        </div>
+        <button class="modal-close-btn" onclick="closeFigmaModal()">✕</button>
+      </div>
+
+      <div class="modal-body" style="padding: 1.5rem; gap: 1.25rem;">
+        <p class="modal-subtitle">
+          Connect your Figma file to enable the browser ACL-ADLC agents to extract design tokens, typography scales, colors, layouts, and frame hierarchies with 100% precision — exactly matching VS Code.
+        </p>
+
+        <div style="display: flex; flex-direction: column; gap: 0.4rem;">
+          <label style="font-size: 0.82rem; font-weight: 600; color: var(--text-primary);">Figma File / Design URL</label>
+          <input 
+            type="text" 
+            id="figmaUrlInput" 
+            placeholder="https://www.figma.com/design/AbCdEf12345/Fleet-360-App" 
+            style="padding: 0.6rem 0.85rem; border: 1px solid var(--border-color); border-radius: var(--radius-md); font-size: 0.85rem; font-family: monospace;"
+          />
+          <span style="font-size: 0.74rem; color: var(--text-muted);">Supports file or design URLs containing your canvas or frame node-id.</span>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 0.4rem;">
+          <label style="font-size: 0.82rem; font-weight: 600; color: var(--text-primary);">Figma Personal Access Token (PAT)</label>
+          <input 
+            type="password" 
+            id="figmaTokenInput" 
+            placeholder="figd_..." 
+            style="padding: 0.6rem 0.85rem; border: 1px solid var(--border-color); border-radius: var(--radius-md); font-size: 0.85rem; font-family: monospace;"
+          />
+          <span style="font-size: 0.74rem; color: var(--text-muted);">Stored securely in your browser's local storage. Never committed to git.</span>
+        </div>
+
+        <div id="figmaStatusAlert" style="display: none; padding: 0.65rem 0.9rem; border-radius: var(--radius-md); font-size: 0.82rem;"></div>
+
+        <div style="display: flex; align-items: center; justify-content: flex-end; gap: 0.75rem; margin-top: 0.5rem;">
+          <button type="button" class="btn-proceed" style="background:#64748b;" onclick="clearFigmaConnection()">Clear</button>
+          <button type="button" class="btn-proceed" style="background:#7e22ce;" onclick="saveFigmaConnection()">Save & Connect</button>
         </div>
       </div>
     </div>
