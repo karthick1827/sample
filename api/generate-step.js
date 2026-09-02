@@ -303,7 +303,12 @@ function loadProjectDesignTokens() {
   return '';
 }
 
-// 4. Figma Design Ingestion via Figma REST API
+// In-memory cache across serverless invocations
+if (!globalThis.__FIGMA_CACHE__) {
+  globalThis.__FIGMA_CACHE__ = new Map();
+}
+
+// 4. Figma Design Ingestion via Figma REST API with In-Memory / Disk Caching & 429 Fallback
 async function fetchFigmaDesignData(figmaUrl, figmaToken) {
   if (!figmaUrl) return null;
 
@@ -323,15 +328,103 @@ async function fetchFigmaDesignData(figmaUrl, figmaToken) {
   const nodeMatch = figmaUrl.match(/node-id=([a-zA-Z0-9%_-]+)/);
   const nodeId = nodeMatch ? decodeURIComponent(nodeMatch[1]).replace(/:/g, '-') : null;
 
+  const cacheKey = `${fileKey}_${nodeId || 'root'}`;
+  const now = Date.now();
+  const diskCachePath = path.join(process.cwd(), '_acl-output', '.figma-cache.json');
+
+  // 1. Check in-memory cache (valid for 30 minutes)
+  if (globalThis.__FIGMA_CACHE__.has(cacheKey)) {
+    const cached = globalThis.__FIGMA_CACHE__.get(cacheKey);
+    if (now - cached.timestamp < 30 * 60 * 1000) {
+      return cached.data;
+    }
+  }
+
+  // 2. Check disk cache if available (valid for 60 minutes)
+  try {
+    if (fs.existsSync(diskCachePath)) {
+      const diskData = JSON.parse(fs.readFileSync(diskCachePath, 'utf8'));
+      if (diskData[cacheKey] && (now - diskData[cacheKey].timestamp < 60 * 60 * 1000)) {
+        globalThis.__FIGMA_CACHE__.set(cacheKey, diskData[cacheKey]);
+        return diskData[cacheKey].data;
+      }
+    }
+  } catch (e) {}
+
   const endpoint = nodeId
     ? `https://api.figma.com/v1/files/${fileKey}/nodes?ids=${nodeId}`
-    : `https://api.figma.com/v1/files/${fileKey}?depth=3`;
+    : `https://api.figma.com/v1/files/${fileKey}?depth=2`;
 
-  const res = await fetch(endpoint, {
-    headers: {
-      'X-Figma-Token': token
+  let res;
+  try {
+    res = await fetch(endpoint, {
+      headers: {
+        'X-Figma-Token': token
+      }
+    });
+  } catch (netErr) {
+    // Return stale cache if network fails
+    if (globalThis.__FIGMA_CACHE__.has(cacheKey)) {
+      return globalThis.__FIGMA_CACHE__.get(cacheKey).data;
     }
-  });
+    throw netErr;
+  }
+
+  // Handle Figma Rate Limiting (HTTP 429) gracefully without crashing
+  if (res.status === 429) {
+    console.warn('[generate-step] Figma API HTTP 429 Rate Limit encountered. Utilizing cached specs or project design tokens...');
+
+    // A. Use cached Figma data if any exists
+    if (globalThis.__FIGMA_CACHE__.has(cacheKey)) {
+      return {
+        ...globalThis.__FIGMA_CACHE__.get(cacheKey).data,
+        isRateLimited: true,
+        source: 'Cached Figma Design (Rate Limit Fallback)'
+      };
+    }
+
+    try {
+      if (fs.existsSync(diskCachePath)) {
+        const diskData = JSON.parse(fs.readFileSync(diskCachePath, 'utf8'));
+        if (diskData[cacheKey]) {
+          return {
+            ...diskData[cacheKey].data,
+            isRateLimited: true,
+            source: 'Cached Figma Design (Rate Limit Fallback)'
+          };
+        }
+      }
+    } catch (e) {}
+
+    // B. Fallback to authentic Fleet 360 design tokens from project stylesheet and brief
+    return {
+      fileName: 'Fleet 360 Design (Rate Limit Fallback Mode)',
+      frames: [
+        { name: 'Login Screen (/login)', type: 'FRAME', width: 1440, height: 900, layoutMode: 'HORIZONTAL', itemSpacing: 0, cornerRadius: 0 },
+        { name: 'Landing Hub (/landing)', type: 'FRAME', width: 1440, height: 900, layoutMode: 'VERTICAL', itemSpacing: 24, cornerRadius: 0 },
+        { name: 'Devices Card', type: 'COMPONENT', width: 360, height: 280, layoutMode: 'VERTICAL', itemSpacing: 16, cornerRadius: 12 },
+        { name: 'Sites Card', type: 'COMPONENT', width: 360, height: 280, layoutMode: 'VERTICAL', itemSpacing: 16, cornerRadius: 12 },
+        { name: 'Users Card', type: 'COMPONENT', width: 360, height: 280, layoutMode: 'VERTICAL', itemSpacing: 16, cornerRadius: 12 }
+      ],
+      keyLabels: [
+        'Welcome to Fleet 360',
+        'Complete visibility into your data, take control with real insights.',
+        'Manage devices efficiently and safely with real-time actionable insights.',
+        'Manage Devices',
+        'Status of multi-location assets and footprint view with max reliability.',
+        'Manage Sites',
+        'Comprehensive view of your team and operators to stay on schedule.',
+        'Manage Users',
+        'Powered by ACE Digital'
+      ],
+      colorPalette: [
+        '#E50026', '#003366', '#0D4278', '#264072', '#0A93D3', '#0969DA', '#1E2A2C', '#515D6D', '#8C9BAE', '#FFFFFF'
+      ],
+      components: ['Devices Card', 'Sites Card', 'Users Card', 'LoginForm', 'LandingHero', 'IndustrialBackground'],
+      isRateLimited: true,
+      source: 'Local Design Tokens (Figma 429 Cooldown Mode)'
+    };
+  }
 
   if (!res.ok) {
     const errText = await res.text();
@@ -401,13 +494,31 @@ async function fetchFigmaDesignData(figmaUrl, figmaToken) {
     }
   }
 
-  return {
+  const parsedResult = {
     fileName: data.name || 'Fleet 360 Design',
     frames: frames.slice(0, 30),
     keyLabels: Array.from(textStrings).slice(0, 40),
     colorPalette: Array.from(colors).slice(0, 25),
-    components: components.slice(0, 30)
+    components: components.slice(0, 30),
+    isRateLimited: false
   };
+
+  // Cache in memory
+  globalThis.__FIGMA_CACHE__.set(cacheKey, { timestamp: now, data: parsedResult });
+
+  // Cache to disk
+  try {
+    const cacheDir = path.dirname(diskCachePath);
+    if (!fs.existsSync(cacheDir)) fs.mkdirSync(cacheDir, { recursive: true });
+    let diskData = {};
+    if (fs.existsSync(diskCachePath)) {
+      try { diskData = JSON.parse(fs.readFileSync(diskCachePath, 'utf8')); } catch (e) {}
+    }
+    diskData[cacheKey] = { timestamp: now, data: parsedResult };
+    fs.writeFileSync(diskCachePath, JSON.stringify(diskData, null, 2), 'utf8');
+  } catch (e) {}
+
+  return parsedResult;
 }
 
 // 5. Call NVIDIA NIM AI

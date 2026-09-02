@@ -1470,14 +1470,21 @@
 
       evaluateProceedButton();
 
+      // Smart Auto-Sync: Poll every 10 seconds only when tab is active and not editing
       setInterval(() => {
-        if (!isDirty) {
+        if (!isDirty && document.visibilityState === 'visible') {
           syncFromLiveDisk(true);
         }
-      }, 3000);
+      }, 10000);
 
       window.addEventListener('focus', () => {
         if (!isDirty) {
+          syncFromLiveDisk(true);
+        }
+      });
+
+      document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible' && !isDirty) {
           syncFromLiveDisk(true);
         }
       });
